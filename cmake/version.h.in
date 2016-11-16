@@ -1,0 +1,8 @@
+#ifndef VERSION_H
+#define VERSION_H
+
+#include <QString>
+
+static const QString DAQ_VERSION = "@DAQ_VERSION_STRING@";
+
+#endif // VERSION_H

@@ -77,7 +77,7 @@ add_library(roipixel SHARED libs/pixel/roipixel.cpp)
 target_link_libraries(roipixel abstractpixel)
 
 add_library(mpahistfile SHARED libs/hist/mpahistfile.cpp)
-target_link_libraries(mpahistfile)
+target_link_libraries(mpahistfile mpa1dhist mpa2dhist)
 
 add_library(mpa1dhist SHARED libs/hist/mpa1dhist.cpp)
 target_link_libraries(mpa1dhist)
@@ -89,7 +89,7 @@ target_link_libraries(mpa2dhist)
 #GUI
 
 add_library(mainwindow SHARED gui/mainwindow.cpp)
-target_link_libraries(mainwindow Qt5::Widgets)
+target_link_libraries(mainwindow Qt5::Widgets mpahistfile)
 
 
 

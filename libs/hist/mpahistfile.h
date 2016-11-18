@@ -19,6 +19,7 @@ public:
     void setSettingsFileName(QString fileName);
     void setName(QString name);
     int loadFile();
+    void createHists();
 
     void computeCdbHists();
 

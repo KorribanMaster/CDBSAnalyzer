@@ -20,6 +20,7 @@ void MainWindow::on_loadButton_clicked()
     mMpaFileName = ui->mpaFileEdit->text();
     QString settingsFileName  = ui->settingsEdit->text();
     mMpaHist = new MpaHistFile(mMpaFileName,settingsFileName,"default");
+    mMpaHist->loadFile();
 
 
 }
@@ -31,7 +32,9 @@ void MainWindow::on_saveButton_clicked()
 
 void MainWindow::on_mpaLoadTool_clicked()
 {
-    QString name = QFileDialog::getOpenFileName(this);
+    QFileDialog *dial = new QFileDialog(this);
+    dial->setDirectory("../data");
+    QString name = dial->getOpenFileName(this);
     ui->mpaFileEdit->setText(name);
 
 }

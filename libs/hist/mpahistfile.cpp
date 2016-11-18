@@ -2,13 +2,6 @@
 
 #include <QDebug>
 
-MpaHistFile::MpaHistFile()
-{
-    mSettings = new QSettings();
-    createHists();
-
-}
-
 
 MpaHistFile::MpaHistFile(QString fileName, QString settingsFileName,QString name){
     mFileName =fileName;
@@ -30,7 +23,8 @@ void MpaHistFile::createHists(){
     for (int i = 0; i<4;i++){
         QString name = QStringLiteral("CDAT%1").arg(i);
         Mpa1dHist *hist = new Mpa1dHist(name);
-        Mpa2dHist *hist2 = new Mpa2dHist();
+        Mpa2dHist *hist2 = new Mpa2dHist(name);
+
         mCdbHists.append(hist);
         m2dHists.append(hist2);
     }
@@ -65,6 +59,7 @@ int MpaHistFile::loadFile(){
     int num2dHist = 0;
     int valuesRead = 0;
     int entriesRemaining=0;
+    int lineLength = 1024; //this should be computed dynamically
     mHeader += in.readLine()+"\n";
     while(in.atEnd()==false){
         QString line = in.readLine();
@@ -80,12 +75,14 @@ int MpaHistFile::loadFile(){
 
             }
             else if (line.startsWith("[CDAT")) {
+                num2dHist++;
                 in2dHist = true;
                 QStringList tmpList = line.split(";");
                 QString tmp = tmpList.at(1);
                 tmp.replace("]","");
                 entriesRemaining = tmpList.at(1).toInt();
-                num2dHist++;
+                m2dHists[num2dHist-1]->setSize(lineLength,lineLength);//this should be computed dynamically
+
 
             }
             else {
@@ -106,6 +103,9 @@ int MpaHistFile::loadFile(){
         else if (in2dHist){
             valuesRead++;
             entriesRemaining--;
+            int x = valuesRead%lineLength;
+            int y = valuesRead/lineLength;
+            m2dHists[num2dHist-1]->setBinContent(x,y,line.toInt());
             if(entriesRemaining==0){
                 in2dHist = false;
                 valuesRead = 0;

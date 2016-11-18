@@ -11,7 +11,6 @@
 class MpaHistFile
 {
 public:
-    MpaHistFile();
     MpaHistFile(QString fileName,QString settingsFileName,QString name);
     ~MpaHistFile();
 

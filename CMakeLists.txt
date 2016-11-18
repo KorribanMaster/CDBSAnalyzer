@@ -7,7 +7,7 @@ MESSAGE("CDB Analyzer")
 MESSAGE("Eicke Hecht")
 
 
-OPTION(WITH_ROOT "Build ROOT dependent apps" OFF)
+OPTION(WITH_ROOT "Build ROOT dependent apps" ON)
 OPTION(WITH_PYTHON2 "Build Python2 modules" OFF)
 OPTION(WITH_PYTHON3 "Build Python3 modules (overrides WITH_PYTHON2)" ON)
 option(WITH_MGL2 "Build mgl2 dependent gui" ON)

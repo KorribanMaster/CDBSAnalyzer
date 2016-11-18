@@ -3,10 +3,14 @@
 
 #include <QObject>
 
-class CdbPixel
+#include <abstractpixel.h>
+
+class CdbPixel : public AbstractPixel
 {
 public:
-    CdbPixel();
+    CdbPixel(Eigen::Vector2f corners[],double counts) : AbstractPixel(corners),mCounts(counts){}
+    QList<CdbPixel*> split();
+    double mCounts;
 };
 
 #endif // CDBPIXEL_H

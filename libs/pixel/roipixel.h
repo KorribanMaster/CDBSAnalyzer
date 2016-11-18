@@ -3,10 +3,13 @@
 
 #include <QObject>
 
-class RoiPixel
+#include <abstractpixel.h>
+
+class RoiPixel : public AbstractPixel
 {
 public:
-    RoiPixel();
+    RoiPixel(Eigen::Vector2f corners[]): AbstractPixel(corners), mContent(0) {}
+    int mContent;
 };
 
 #endif // ROIPIXEL_H

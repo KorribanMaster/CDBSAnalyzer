@@ -4,6 +4,7 @@
 #include <QObject>
 #include <Eigen/Dense>
 
+#include <abstractpixel.h>
 #include <cdbpixel.h>
 #include <roipixel.h>
 #include <mpa1dhist.h>
@@ -35,12 +36,12 @@ public:
     Eigen::VectorXf mXEnergyscale;
     Eigen::VectorXf mYEnergyscale;
 
-    Eigen::Vector2i mCenter;
-    Eigen::Vector2f mEnergyCenter;
-    Eigen::Vector2f mCal;
+    Eigen::Array2f mCenter;
+    Eigen::Array2f mEnergyCenter;
+    Eigen::Array2f mCal;
 
-    QList<CdbPixel*> mEnergyMap;
-    QList<RoiPixel*> mRoiGrid;
+    std::vector<CdbPixel*> mEnergyMap;
+    std::vector<RoiPixel*> mRoiGrid;
     RoiPixel *mRoiBorder;
 
     double mRoiWidth;

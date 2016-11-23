@@ -6,7 +6,8 @@
 class AbstractPixel
 {
 public:
-    AbstractPixel(Eigen::Vector2f corners[]);
+    AbstractPixel(const Eigen::Vector2f corners[]);
+    AbstractPixel(const std::vector<Eigen::Array2f> corners);
     ~AbstractPixel();
 
     int inside(AbstractPixel* otherPixel);

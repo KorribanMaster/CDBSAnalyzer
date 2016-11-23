@@ -15,12 +15,17 @@ MpaHistFile::~MpaHistFile(){
 }
 
 void MpaHistFile::createHists(){
-    for (int i = 0; i<8;i++){
+    for (int i = 0; i < mSettings->value("NumDet").toInt();i++){
         QString name = QStringLiteral("DATA%1").arg(i);
         Mpa1dHist *hist = new Mpa1dHist(name);
+        QString calKey = QStringLiteral("Calibration/Single%1").arg(i);
+        double cal = mSettings->value(calKey).toDouble();
+        QString peakKey = QStringLiteral("Calibration/Peak%1").arg(i);
+        double peak = mSettings->value(peakKey).toDouble();
+        hist->setCalibration(cal,511,peak);
         m1dHists.append(hist);
     }
-    for (int i = 0; i<4;i++){
+    for (int i = 0; i < (mSettings->value("NumDet").toInt()/2);i++){
         QString name = QStringLiteral("CDAT%1").arg(i);
         Mpa1dHist *hist = new Mpa1dHist(name);
         Mpa2dHist *hist2 = new Mpa2dHist(name);

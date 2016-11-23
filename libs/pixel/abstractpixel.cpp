@@ -1,6 +1,6 @@
 #include "abstractpixel.h"
 
-AbstractPixel::AbstractPixel(Eigen::Vector2f corners[])
+AbstractPixel::AbstractPixel(const Eigen::Vector2f corners[])
 {
     for (int i=0; i<4; i++){
         mCorners[i] = corners[i];
@@ -11,6 +11,17 @@ AbstractPixel::AbstractPixel(Eigen::Vector2f corners[])
     }
     mEdges[3] = mCorners[0] - mCorners[3];
 
+}
+
+AbstractPixel::AbstractPixel(const std::vector<Eigen::Array2f> corners){
+    for (int i=0; i<4; i++){
+        mCorners[i](0) = corners[i](0);
+        mCorners[i](1) = corners[i](1);
+    }
+    for (int i = 0; i<3 ;i++){
+        mEdges[i] =  mCorners[i+1]-mCorners[i];//p2-p1
+    }
+    mEdges[3] = mCorners[0] - mCorners[3];
 }
 
 AbstractPixel::~AbstractPixel(){

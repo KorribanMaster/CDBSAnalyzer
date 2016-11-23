@@ -8,8 +8,9 @@
 class CdbPixel : public AbstractPixel
 {
 public:
-    CdbPixel(Eigen::Vector2f corners[],double counts) : AbstractPixel(corners),mCounts(counts){}
-    QList<CdbPixel*> split();
+    CdbPixel(const Eigen::Vector2f corners[],double counts) : AbstractPixel(corners),mCounts(counts){}
+    CdbPixel(const std::vector<Eigen::Array2f> corners,double counts) : AbstractPixel(corners),mCounts(counts){}
+    std::vector<CdbPixel*> split();
     double mCounts;
 };
 

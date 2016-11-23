@@ -64,7 +64,7 @@ public:
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         gridLayoutWidget = new QWidget(centralwidget);
         gridLayoutWidget->setObjectName(QStringLiteral("gridLayoutWidget"));
-        gridLayoutWidget->setGeometry(QRect(20, 20, 301, 83));
+        gridLayoutWidget->setGeometry(QRect(20, 20, 571, 83));
         gridLayout = new QGridLayout(gridLayoutWidget);
         gridLayout->setObjectName(QStringLiteral("gridLayout"));
         gridLayout->setContentsMargins(0, 0, 0, 0);
@@ -181,9 +181,13 @@ public:
         outputFileLabel->setText(QApplication::translate("MainWindow", "output file", 0));
         loadButton->setText(QApplication::translate("MainWindow", "Load", 0));
         saveToolButton->setText(QApplication::translate("MainWindow", "...", 0));
+        outputFileEdit->setText(QApplication::translate("MainWindow", "/home/ehecht/git/CDBSAnalyzer/data/out.txt", 0));
         saveButton->setText(QApplication::translate("MainWindow", "Save", 0));
         settingsToolButton->setText(QApplication::translate("MainWindow", "...", 0));
+        settingsEdit->setText(QApplication::translate("MainWindow", "/home/ehecht/git/CDBSAnalyzer/settings/CDBSUpgrade.ini", 0));
         settingsLabel->setText(QApplication::translate("MainWindow", "settings", 0));
+        roiEdit->setText(QApplication::translate("MainWindow", "20000", 0));
+        binEdit->setText(QApplication::translate("MainWindow", "100", 0));
         binWidthLabel->setText(QApplication::translate("MainWindow", "bin width", 0));
         roiWidthLabel->setText(QApplication::translate("MainWindow", "roi width", 0));
         computeButton->setText(QApplication::translate("MainWindow", "Compute", 0));

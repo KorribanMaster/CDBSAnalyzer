@@ -102,7 +102,7 @@ INSTALL(TARGETS abstractpixel cdbpixel roipixel
 
 # APPS
 ADD_EXECUTABLE(cdbanalyzer main.cpp)
-TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow)
+TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow )
 
 
 INSTALL(TARGETS cdbanalyzer

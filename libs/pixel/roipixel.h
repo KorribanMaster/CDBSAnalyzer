@@ -8,7 +8,8 @@
 class RoiPixel : public AbstractPixel
 {
 public:
-    RoiPixel(Eigen::Vector2f corners[]): AbstractPixel(corners), mContent(0) {}
+    RoiPixel(const Eigen::Vector2f corners[]): AbstractPixel(corners), mContent(0) {}
+    RoiPixel(const std::vector<Eigen::Array2f> corners): AbstractPixel(corners), mContent(0) {}
     int mContent;
 };
 

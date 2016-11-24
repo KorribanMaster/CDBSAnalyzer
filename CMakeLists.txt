@@ -7,7 +7,7 @@ MESSAGE("CDB Analyzer")
 MESSAGE("Eicke Hecht")
 
 
-OPTION(WITH_ROOT "Build ROOT dependent apps" ON)
+OPTION(WITH_ROOT "Build ROOT dependent apps" OFF)
 OPTION(WITH_PYTHON2 "Build Python2 modules" OFF)
 OPTION(WITH_PYTHON3 "Build Python3 modules (overrides WITH_PYTHON2)" ON)
 option(WITH_MGL2 "Build mgl2 dependent gui" ON)
@@ -69,6 +69,7 @@ INCLUDE_DIRECTORIES(libs
 )
 
 ADD_LIBRARY(abstractpixel SHARED libs/pixel/abstractpixel.cpp)
+target_link_libraries(abstractpixel)
 
 add_library(cdbpixel SHARED libs/pixel/cdbpixel.cpp)
 target_link_libraries(cdbpixel abstractpixel)
@@ -80,16 +81,21 @@ add_library(mpahistfile SHARED libs/hist/mpahistfile.cpp)
 target_link_libraries(mpahistfile mpa1dhist mpa2dhist)
 
 add_library(mpa1dhist SHARED libs/hist/mpa1dhist.cpp)
-target_link_libraries(mpa1dhist)
+target_link_libraries(mpa1dhist abstractpixel roipixel cdbpixel)
 
 add_library(mpa2dhist SHARED libs/hist/mpa2dhist.cpp)
-target_link_libraries(mpa2dhist)
+target_link_libraries(mpa2dhist abstractpixel roipixel cdbpixel)
 
 
 #GUI
+#set(gui_files gui/*.ui)
+#source_group(gui FILES ${gui_files})
+#QT5_WRAP_UI(guis_h ${gui_files})
+
+#set_property(${gui_files} DIRECTORY gui)
 
 add_library(mainwindow SHARED gui/mainwindow.cpp)
-target_link_libraries(mainwindow Qt5::Widgets mpahistfile)
+target_link_libraries(mainwindow Qt5::Widgets mpahistfile abstractpixel)
 
 
 
@@ -102,11 +108,17 @@ INSTALL(TARGETS abstractpixel cdbpixel roipixel
 
 # APPS
 ADD_EXECUTABLE(cdbanalyzer main.cpp)
-TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow )
-
+TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow abstractpixel )
 
 INSTALL(TARGETS cdbanalyzer
     RUNTIME DESTINATION bin
 )
 
+#TESTS
+add_executable(pixeltest test/pixeltest.cpp)
+target_link_libraries(pixeltest abstractpixel roipixel cdbpixel)
 
+add_executable(maptest test/maptest.cpp)
+target_link_libraries(maptest cdbpixel roipixel abstractpixel)
+
+install(TARGETS pixeltest maptest RUNTIME DESTINATION bin)

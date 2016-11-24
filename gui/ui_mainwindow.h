@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created by: Qt User Interface Compiler version 5.2.1
+** Created by: Qt User Interface Compiler version 5.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -46,11 +46,13 @@ public:
     QLabel *settingsLabel;
     QWidget *gridLayoutWidget_2;
     QGridLayout *gridLayout_2;
-    QLineEdit *roiEdit;
-    QLineEdit *binEdit;
+    QLineEdit *roiWidthEdit;
+    QLineEdit *binWidthEdit;
     QLabel *binWidthLabel;
     QLabel *roiWidthLabel;
     QPushButton *computeButton;
+    QLineEdit *roiLengthEdit;
+    QLabel *roiLengthLabel;
     QMenuBar *menubar;
     QMenu *menuSettings;
     QStatusBar *statusbar;
@@ -125,24 +127,24 @@ public:
 
         gridLayoutWidget_2 = new QWidget(centralwidget);
         gridLayoutWidget_2->setObjectName(QStringLiteral("gridLayoutWidget_2"));
-        gridLayoutWidget_2->setGeometry(QRect(20, 120, 221, 80));
+        gridLayoutWidget_2->setGeometry(QRect(20, 120, 221, 104));
         gridLayout_2 = new QGridLayout(gridLayoutWidget_2);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
         gridLayout_2->setContentsMargins(0, 0, 0, 0);
-        roiEdit = new QLineEdit(gridLayoutWidget_2);
-        roiEdit->setObjectName(QStringLiteral("roiEdit"));
+        roiWidthEdit = new QLineEdit(gridLayoutWidget_2);
+        roiWidthEdit->setObjectName(QStringLiteral("roiWidthEdit"));
 
-        gridLayout_2->addWidget(roiEdit, 0, 1, 1, 1);
+        gridLayout_2->addWidget(roiWidthEdit, 0, 1, 1, 1);
 
-        binEdit = new QLineEdit(gridLayoutWidget_2);
-        binEdit->setObjectName(QStringLiteral("binEdit"));
+        binWidthEdit = new QLineEdit(gridLayoutWidget_2);
+        binWidthEdit->setObjectName(QStringLiteral("binWidthEdit"));
 
-        gridLayout_2->addWidget(binEdit, 1, 1, 1, 1);
+        gridLayout_2->addWidget(binWidthEdit, 2, 1, 1, 1);
 
         binWidthLabel = new QLabel(gridLayoutWidget_2);
         binWidthLabel->setObjectName(QStringLiteral("binWidthLabel"));
 
-        gridLayout_2->addWidget(binWidthLabel, 1, 0, 1, 1);
+        gridLayout_2->addWidget(binWidthLabel, 2, 0, 1, 1);
 
         roiWidthLabel = new QLabel(gridLayoutWidget_2);
         roiWidthLabel->setObjectName(QStringLiteral("roiWidthLabel"));
@@ -153,6 +155,16 @@ public:
         computeButton->setObjectName(QStringLiteral("computeButton"));
 
         gridLayout_2->addWidget(computeButton, 0, 2, 1, 1);
+
+        roiLengthEdit = new QLineEdit(gridLayoutWidget_2);
+        roiLengthEdit->setObjectName(QStringLiteral("roiLengthEdit"));
+
+        gridLayout_2->addWidget(roiLengthEdit, 1, 1, 1, 1);
+
+        roiLengthLabel = new QLabel(gridLayoutWidget_2);
+        roiLengthLabel->setObjectName(QStringLiteral("roiLengthLabel"));
+
+        gridLayout_2->addWidget(roiLengthLabel, 1, 0, 1, 1);
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
@@ -181,16 +193,19 @@ public:
         outputFileLabel->setText(QApplication::translate("MainWindow", "output file", 0));
         loadButton->setText(QApplication::translate("MainWindow", "Load", 0));
         saveToolButton->setText(QApplication::translate("MainWindow", "...", 0));
-        outputFileEdit->setText(QApplication::translate("MainWindow", "/home/ehecht/git/CDBSAnalyzer/data/out.txt", 0));
+        outputFileEdit->setText(QApplication::translate("MainWindow", "../data/out.txt", 0));
+        mpaFileEdit->setText(QApplication::translate("MainWindow", "../data/Messung006.mpa", 0));
         saveButton->setText(QApplication::translate("MainWindow", "Save", 0));
         settingsToolButton->setText(QApplication::translate("MainWindow", "...", 0));
-        settingsEdit->setText(QApplication::translate("MainWindow", "/home/ehecht/git/CDBSAnalyzer/settings/CDBSUpgrade.ini", 0));
+        settingsEdit->setText(QApplication::translate("MainWindow", "../settings/CDBSUpgrade.ini", 0));
         settingsLabel->setText(QApplication::translate("MainWindow", "settings", 0));
-        roiEdit->setText(QApplication::translate("MainWindow", "20000", 0));
-        binEdit->setText(QApplication::translate("MainWindow", "100", 0));
+        roiWidthEdit->setText(QApplication::translate("MainWindow", "2000", 0));
+        binWidthEdit->setText(QApplication::translate("MainWindow", "100", 0));
         binWidthLabel->setText(QApplication::translate("MainWindow", "bin width", 0));
         roiWidthLabel->setText(QApplication::translate("MainWindow", "roi width", 0));
         computeButton->setText(QApplication::translate("MainWindow", "Compute", 0));
+        roiLengthEdit->setText(QApplication::translate("MainWindow", "20000", 0));
+        roiLengthLabel->setText(QApplication::translate("MainWindow", "roiLength", 0));
         menuSettings->setTitle(QApplication::translate("MainWindow", "Settings", 0));
     } // retranslateUi
 

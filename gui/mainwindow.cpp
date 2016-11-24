@@ -42,15 +42,25 @@ void MainWindow::on_mpaLoadTool_clicked()
 void MainWindow::on_saveToolButton_clicked()
 {
     QString name = QFileDialog::getSaveFileName(this);
+    ui->outputFileEdit->setText(name);
 
 }
 
 void MainWindow::on_computeButton_clicked()
 {
+    double roiWidth = ui->roiWidthEdit->text().toDouble();
+    double roiLength = ui->roiLengthEdit->text().toDouble();
+    double binWidth = ui->binWidthEdit->text().toDouble();
+    mMpaHist->computeCdbHists(roiWidth,roiLength,binWidth);
 
 }
 
 void MainWindow::on_settingsToolButton_clicked()
 {
+    QFileDialog *dial = new QFileDialog(this);
+    dial->setDirectory("../settings");
+    QString name = dial->getOpenFileName(this);
+    ui->settingsEdit->setText(name);
+
 
 }

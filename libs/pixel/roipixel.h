@@ -3,13 +3,15 @@
 
 #include <QObject>
 
-#include <abstractpixel.h>
+#include "abstractpixel.h"
 
 class RoiPixel : public AbstractPixel
 {
 public:
-    RoiPixel(const Eigen::Vector2f corners[]): AbstractPixel(corners), mContent(0) {}
-    RoiPixel(const std::vector<Eigen::Array2f> corners): AbstractPixel(corners), mContent(0) {}
+    RoiPixel(const std::vector<Eigen::Vector2d> corners): AbstractPixel(corners), mContent(0) {}
+    RoiPixel(const std::vector<Eigen::Array2d> corners): AbstractPixel(corners), mContent(0) {}
+    void addContent(double counts);
+    double content();
     int mContent;
 };
 

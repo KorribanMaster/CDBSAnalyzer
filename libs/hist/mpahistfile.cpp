@@ -15,7 +15,7 @@ MpaHistFile::~MpaHistFile(){
 }
 
 void MpaHistFile::createHists(){
-    for (int i = 0; i < mSettings->value("NumDet").toInt();i++){
+   for (int i = 0; i < mSettings->value("NumDet").toInt();i++){
         QString name = QStringLiteral("DATA%1").arg(i);
         Mpa1dHist *hist = new Mpa1dHist(name);
         QString calKey = QStringLiteral("Calibration/Single%1").arg(i);
@@ -27,10 +27,17 @@ void MpaHistFile::createHists(){
     }
     for (int i = 0; i < (mSettings->value("NumDet").toInt()/2);i++){
         QString name = QStringLiteral("CDAT%1").arg(i);
-        Mpa1dHist *hist = new Mpa1dHist(name);
         Mpa2dHist *hist2 = new Mpa2dHist(name);
-
-        mCdbHists.append(hist);
+        QString center = QStringLiteral("Calibration/Center%1").arg(i);
+        QList<QVariant> centerList = mSettings->value(center).toList();
+        float xcenter = centerList.at(0).toFloat();
+        float ycenter = centerList.at(1).toFloat();
+        QString cal = QStringLiteral("Calibration/Coinc%1").arg(i);
+        QList<QVariant> calList = mSettings->value(cal).toList();
+        float xcal = calList.at(0).toFloat();
+        float ycal = calList.at(1).toFloat();
+        hist2->setCalibration(xcal,ycal);
+        hist2->setCenter(xcenter,ycenter);
         m2dHists.append(hist2);
     }
 }
@@ -82,10 +89,10 @@ int MpaHistFile::loadFile(){
             else if (line.startsWith("[CDAT")) {
                 num2dHist++;
                 in2dHist = true;
-                QStringList tmpList = line.split(";");
+                QStringList tmpList = line.split(",");
                 QString tmp = tmpList.at(1);
                 tmp.replace("]","");
-                entriesRemaining = tmpList.at(1).toInt();
+                entriesRemaining = tmp.toInt();
                 m2dHists[num2dHist-1]->setSize(lineLength,lineLength);//this should be computed dynamically
 
 
@@ -106,10 +113,10 @@ int MpaHistFile::loadFile(){
             }
         }
         else if (in2dHist){
-            valuesRead++;
             entriesRemaining--;
             int x = valuesRead%lineLength;
             int y = valuesRead/lineLength;
+            valuesRead++;
             m2dHists[num2dHist-1]->setBinContent(x,y,line.toInt());
             if(entriesRemaining==0){
                 in2dHist = false;
@@ -121,6 +128,13 @@ int MpaHistFile::loadFile(){
 
 }
 
-void MpaHistFile::computeCdbHists(){
+void MpaHistFile::computeCdbHists(double roiWidth,double roiLength,double binWidth){
+    for (int i=0;i<m2dHists.size();i++){
+        Mpa2dHist *hist = m2dHists.at(i);
+        hist->setRoi(roiWidth,roiLength);
+        hist->setEnergyBinWidth(binWidth);
+        Mpa1dHist *cdbHist = hist->projectCDBS();
+        mCdbHists.push_back(cdbHist);
+    }
 
 }

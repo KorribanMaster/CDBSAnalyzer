@@ -22,6 +22,7 @@ public:
     void setRoi(double roiWidth, double roiLength);
     void setEnergyBinWidth(double binWidth);
     void setCalibration(float xcal,float ycal);
+    void setCenter(float xcenter,float ycenter);
 
     void findCenter();
     void updateRoi();
@@ -30,23 +31,27 @@ public:
     Mpa1dHist* projectCDBS();
     Mpa1dHist* projectCDBS(double roiWidth, double roiLength, double binWidth);
 
+    void getContent(int i,std::vector<CdbPixel*> pxList,int depth);
 
     Eigen::MatrixXi mRawHist;
     Eigen::MatrixXi mCenteredHist;
     Eigen::VectorXf mXEnergyscale;
     Eigen::VectorXf mYEnergyscale;
 
-    Eigen::Array2f mCenter;
-    Eigen::Array2f mEnergyCenter;
-    Eigen::Array2f mCal;
+    Eigen::Array2d mCenter;
+    Eigen::Array2d mEnergyCenter;
+    Eigen::Array2d mCal;
 
     std::vector<CdbPixel*> mEnergyMap;
     std::vector<RoiPixel*> mRoiGrid;
     RoiPixel *mRoiBorder;
+    RoiPixel *mTestBorder;
 
     double mRoiWidth;
     double mRoiLength;
     double mEnergyBinWidth;
+
+    int mMaxDepth;
 
     QString mName;
 

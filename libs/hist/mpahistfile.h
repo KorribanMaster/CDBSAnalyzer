@@ -20,7 +20,7 @@ public:
     int loadFile();
     void createHists();
 
-    void computeCdbHists();
+    void computeCdbHists(double roiWidth,double roiLength,double binWidth);
 
     double mRoiWidth;
     double mBinWidth;

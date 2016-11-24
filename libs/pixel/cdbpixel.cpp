@@ -1,7 +1,7 @@
 #include "cdbpixel.h"
 
 std::vector<CdbPixel*> CdbPixel::split(){
-    Eigen::Vector2f corners[4];
+    std::vector<Eigen::Vector2d> corners(4);
     std::vector<CdbPixel*> subPixels;
     corners[0] = mCorners[0];
     corners[1] = mCorners[0]+0.5*mEdges[0];
@@ -29,4 +29,8 @@ std::vector<CdbPixel*> CdbPixel::split(){
     subPixels.push_back(subPixel);
     return subPixels;
 
+}
+
+double CdbPixel::counts(){
+    return mCounts;
 }

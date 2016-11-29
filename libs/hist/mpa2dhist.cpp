@@ -15,6 +15,7 @@ Mpa2dHist::Mpa2dHist(QString name, int xbins, int ybins){
     mMaxDepth =8;
     mEnergyCenter = Eigen::Array2d(511,511);
 
+
 }
 
 Mpa2dHist::~Mpa2dHist(){
@@ -27,6 +28,8 @@ void Mpa2dHist::setSize(int xbins, int ybins){
     mYEnergyscale.resize(ybins);
 
 }
+
+
 
 void Mpa2dHist::setBinContent(int xbin, int ybin,int counts){
     mRawHist(xbin,ybin) = counts;
@@ -54,7 +57,8 @@ void Mpa2dHist::setCenter(float xcenter, float ycenter){
 }
 
 void Mpa2dHist::findCenter(){
-    mCenteredHist = mRawHist.block<500,500>(mCenter(0)-250,mCenter(1)-250);
+    //mCenteredHist = mRawHist.block<500,500>(mCenter(0)-250,mCenter(1)-250); //Commented for testing reasons
+    mCenteredHist = mRawHist;
 }
 
 void Mpa2dHist::updateRoi(){
@@ -64,9 +68,9 @@ void Mpa2dHist::updateRoi(){
     Eigen::Vector2d c1;
     Eigen::Vector2d c2;
     std::vector<Eigen::Vector2d> corners(4);
-    Eigen::Vector2d v1(1,-1);
-    Eigen::Vector2d v2(1,1);
-    Eigen::Vector2d v3(1,-1);
+    Eigen::Vector2d v1(1/std::sqrt(2),-1/std::sqrt(2));
+    Eigen::Vector2d v2(1/std::sqrt(2),1/std::sqrt(2));
+    Eigen::Vector2d v3(1/std::sqrt(2),-1/std::sqrt(2));
     v1 = v1*mRoiLength;
     v2 = v2*mRoiWidth;
     v3 = v3*mEnergyBinWidth;
@@ -77,18 +81,12 @@ void Mpa2dHist::updateRoi(){
     corners[2] = p2+v2;
     corners[3] = p2-v2;
     mRoiBorder = new RoiPixel(corners);
-    //define test border
-    std::vector<Eigen::Vector2d> corner(4);
-    corner[0] = Eigen::Vector2d(511e3-20*mCal,511e3-20*mCal);
-    corner[1] = Eigen::Vector2d(511e3-5*mCal,511e3+5*mCal);
-    corner[2] = Eigen::Vector2d(511e3+5*mCal,511e3+5*mCal);
-    corner[3] = Eigen::Vector2d(511e3+5*mCal,511e3-5*mCal);
-    RoiPixel *gridPx = new RoiPixel(corner);
+
     //RoiPixels. Assume the binWidth*n=roiLength
     //should be generalized
     c1 = corners[0];
     c2 = corners[1];
-    for(int i=0;i<mRoiLength/mEnergyBinWidth-1;i++){
+    for(int i=0;i<mRoiLength/mEnergyBinWidth*2;i++){
        corners[0] = c1+i*v3;
        corners[1] = c2+i*v3;
        corners[2] = c2+(i+1)*v3;
@@ -101,13 +99,17 @@ void Mpa2dHist::updateRoi(){
 
 void Mpa2dHist::updateMap(){
     mEnergyMap.clear();
-    for(int i=0;i<mCenteredHist.cols();i++){
-       for(int j=0;j<mCenteredHist.rows();j++){
-           Eigen::Array2d center(i,j);
+    Eigen::Array2d leftTop;
+    leftTop(0) = mEnergyCenter(0)*1e3-(mCenteredHist.rows()/2)*mCal(0);
+    leftTop(1) = mEnergyCenter(1)*1e3+(mCenteredHist.cols()/2)*mCal(1);
+    for(int y=0;y<mCenteredHist.cols();y++){
+       for(int x=0;x<mCenteredHist.rows();x++){
+           Eigen::Array2d center(x,y);
            Eigen::Array2d tmp;
            Eigen::Array2d odd;
            std::vector<Eigen::Array2d> corners;
-           center = 511*1e3 + (center-250)*mCal;
+           center(0) = leftTop(0)+x*mCal(0);
+           center(1) = leftTop(1)-y*mCal(0);
            odd << -0.5,0.5;
            tmp = center-0.5*mCal;
            corners.push_back(tmp);
@@ -117,7 +119,7 @@ void Mpa2dHist::updateMap(){
            corners.push_back(tmp);
            tmp = center-odd*mCal;
            corners.push_back(tmp);
-           CdbPixel *px = new CdbPixel(corners,mCenteredHist(i,j));
+           CdbPixel *px = new CdbPixel(corners,mCenteredHist(y,x));
            mEnergyMap.push_back(px);
        }
     }
@@ -129,8 +131,9 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
     updateMap();
     updateRoi();
     Mpa1dHist *projection = new Mpa1dHist(mName);
+    projection->setSize(mRoiGrid.size());
     std::vector<CdbPixel*> remaining;
-    //remaining.reserve(mEnergyMap.size());
+    remaining.reserve(mEnergyMap.size());
     for(int i= 0;i<mEnergyMap.size();i++){
         CdbPixel *px = mEnergyMap[i];
         int nInside = px->inside(mRoiBorder);
@@ -139,43 +142,15 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
             remaining.push_back(mEnergyMap[i]);
         }
     }
+    mEnergyMapFiltered = remaining;
     for (int i=0;i<mRoiGrid.size();i++){
-        getContent(i,remaining,0);
+        mEnergyMapFiltered = mRoiGrid[i]->getContent(mEnergyMapFiltered,0);
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
     return projection;
 }
 
-void Mpa2dHist::getContent(int i,std::vector<CdbPixel*> pxList,int depth){
-    int currentSize = pxList.size();
-    //std::vector<CdbPixel*> tmp;
-    if (depth < mMaxDepth){
-        for(int n;n<currentSize;n++){
-            CdbPixel *px = pxList[n];
-            if (px->inside(mRoiGrid[i])==4){
-                mRoiGrid.at(i)->addContent(px->counts());
-                //pixel is inside
-            }
-            else if (px->inside(mRoiGrid[i])==0) {
-                //pixel is completely not inside.
-            }
-            else {
-                //pixel is partially inside
-                std::vector<CdbPixel*> subList= px->split();
-                getContent(i,subList,depth+1);
-            }
-        }
-    }
-    else {
-        for(int n;n<currentSize;n++){
-            CdbPixel *px = pxList[n];
-            if (px->inside(mRoiGrid[i])==4){
-                mRoiGrid.at(i)->addContent(px->counts());
-                //pixel is inside
-            }
-        }
-    }
-}
+
 
 Mpa1dHist* Mpa2dHist::projectCDBS(double roiWidth, double roiLength, double binWidth){
     setRoi(roiWidth,roiLength);

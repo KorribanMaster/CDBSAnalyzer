@@ -39,7 +39,11 @@ int AbstractPixel::inside(AbstractPixel *otherPixel){
             Eigen::Vector2d e = otherPixel->mEdges[j];
             Eigen::Vector2d p1 = otherPixel->mCorners[j];
             Eigen::Vector2d p2 = otherPixel->mCorners[next];
-            test[j] = e(0)*(pt(1)-p2(1)) -(pt(0)-p1(0))*e(1);
+            double A = -e(1);
+            double B = e(0);
+            double C = -(A*p1(0)+B*p1(1));
+            test[j] = A*pt(0) + B*pt(1) +C;
+            //test[j] = e(0)*(pt(1)-p2(1)) -(pt(0)-p1(0))*e(1);
             /* If test > 0, the point is on the left-hand side.
                If test < 0, the point is on the right-hand side.
                If test = 0, the point is on the line.

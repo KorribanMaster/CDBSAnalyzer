@@ -15,7 +15,7 @@ public:
     void setCalibration(float channelToEnergy,float peakEnergy,float peakPosition);
     QString mName;
     int mSize;
-    Eigen::VectorXi mRawHist;
+    Eigen::VectorXf mRawHist;
     Eigen::VectorXf mEnergyScale;
 };
 

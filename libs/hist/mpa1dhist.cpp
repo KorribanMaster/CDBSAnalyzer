@@ -21,7 +21,7 @@ void Mpa1dHist::setSize(int size){
     mEnergyScale.resize(mSize);
 }
 
-void Mpa1dHist::setBinContent(int nBin,int counts){
+void Mpa1dHist::setBinContent(int nBin,double counts){
     mRawHist(nBin) = counts;
 }
 

@@ -14,6 +14,9 @@ public:
 
     Eigen::Vector2d mCorners[4];
     Eigen::Vector2d mEdges[4];
+    Eigen::Vector2d mCenter;
+
+    double mRadius;
 
 };
 

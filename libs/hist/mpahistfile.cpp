@@ -28,16 +28,11 @@ void MpaHistFile::createHists(){
     for (int i = 0; i < (mSettings->value("NumDet").toInt()/2);i++){
         QString name = QStringLiteral("CDAT%1").arg(i);
         Mpa2dHist *hist2 = new Mpa2dHist(name);
-        QString center = QStringLiteral("Calibration/Center%1").arg(i);
-        QList<QVariant> centerList = mSettings->value(center).toList();
-        float xcenter = centerList.at(0).toFloat();
-        float ycenter = centerList.at(1).toFloat();
         QString cal = QStringLiteral("Calibration/Coinc%1").arg(i);
         QList<QVariant> calList = mSettings->value(cal).toList();
         float xcal = calList.at(0).toFloat();
         float ycal = calList.at(1).toFloat();
         hist2->setCalibration(xcal,ycal);
-        hist2->setCenter(xcenter,ycenter);
         m2dHists.append(hist2);
     }
 }

@@ -27,8 +27,22 @@ void MainWindow::on_loadButton_clicked()
 
 void MainWindow::on_saveButton_clicked()
 {
+    QFile mapFile(ui->outputFileEdit->text());
+    if(!mapFile.open(QIODevice::ReadWrite)){
+        qDebug() << "Failed to open file";
+    }
+    QTextStream out(&mapFile);
+    for(int i=0;i<mMpaHist->mCdbHists.size();i++){
+        Mpa1dHist *hist = mMpaHist->mCdbHists.at(i);
+        out << hist->mName << "\n";
+        for(int n=0;n<hist->mSize;i++){
+            out << hist->mEnergyScale(i) <<"; " << hist->mRawHist(i) << "\n";
+        }
 
+    }
+    mapFile.close();
 }
+
 
 void MainWindow::on_mpaLoadTool_clicked()
 {

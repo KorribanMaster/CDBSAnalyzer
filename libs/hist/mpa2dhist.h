@@ -4,6 +4,7 @@
 #include <QObject>
 #include <Eigen/Dense>
 
+
 #include <abstractpixel.h>
 #include <cdbpixel.h>
 #include <roipixel.h>
@@ -33,10 +34,10 @@ public:
     Mpa1dHist* projectCDBS(double roiWidth, double roiLength, double binWidth);
 
 
-    Eigen::MatrixXi mRawHist;
-    Eigen::MatrixXi mCenteredHist;
-    Eigen::VectorXf mXEnergyscale;
-    Eigen::VectorXf mYEnergyscale;
+    Eigen::MatrixXd mRawHist;
+    Eigen::MatrixXd mCenteredHist;
+    Eigen::VectorXd mXEnergyscale;
+    Eigen::VectorXd mYEnergyscale;
 
     Eigen::Array2d mCenter;
     Eigen::Array2d mEnergyCenter;

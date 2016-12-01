@@ -132,4 +132,7 @@ target_link_libraries(hist2dtest mpa2dhist mpa1dhist cdbpixel roipixel abstractp
 add_executable(plottest test/plottest.cpp)
 target_link_libraries(plottest plotwindow)
 
+add_executable(fittest test/fittest.cpp)
+target_link_libraries(fittest qcustomplot)
+
 install(TARGETS pixeltest maptest RUNTIME DESTINATION bin)

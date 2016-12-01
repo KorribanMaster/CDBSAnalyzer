@@ -1,5 +1,51 @@
 #include "mpa2dhist.h"
 
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <unsupported/Eigen/NumericalDiff>
+
+#include <QDebug>
+
+template<typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
+struct Functor
+{
+  typedef _Scalar Scalar;
+  enum {
+    InputsAtCompileTime = NX,
+    ValuesAtCompileTime = NY
+  };
+  typedef Eigen::Matrix<Scalar,InputsAtCompileTime,1> InputType;
+  typedef Eigen::Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
+  typedef Eigen::Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
+
+  const int m_inputs, m_values;
+
+  Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
+  Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
+
+  int inputs() const { return m_inputs; }
+  int values() const { return m_values; }
+
+  // you should define that in the subclass :
+//  void operator() (const InputType& x, ValueType* v, JacobianType* _j=0) const;
+};
+
+struct lmdif_gauss_functor : Functor<double>
+{
+    const int mYSize;
+    Eigen::VectorXd mY;
+    lmdif_gauss_functor(const Eigen::VectorXd &y,int ysize) : Functor<double>(3,ysize), mYSize(ysize),mY(y) {}
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    {
+        assert(x.size()==3);
+        assert(fvec.size()==mYSize);
+        for(int i=0;i<mYSize;i++){
+            //implement error of gaussian
+            fvec(i) = mY(i) - (x(0)*std::exp(-(std::pow((i-x(1)),2)/(2*std::pow(x(2),2)))));
+        }
+        return 0;
+    }
+};
+
 Mpa2dHist::Mpa2dHist(QString name)
 {
     setSize(0,0);
@@ -57,8 +103,49 @@ void Mpa2dHist::setCenter(float xcenter, float ycenter){
 }
 
 void Mpa2dHist::findCenter(){
-    //mCenteredHist = mRawHist.block<500,500>(mCenter(0)-250,mCenter(1)-250); //Commented for testing reasons
-    mCenteredHist = mRawHist;
+
+    double ycenter=0;
+    double xcenter=0;
+    //calculate cuts in y direction
+    for(int i=0;i<4;i++){
+        Eigen::MatrixXd tmp = mRawHist.block<1024,100>(0,i*100);
+        Eigen::VectorXd cut = tmp.rowwise().sum();
+        Eigen::VectorXd x(3);
+        x << cut.maxCoeff(), cut.size()/2 , 50;
+        lmdif_gauss_functor functor(cut,cut.size());
+        Eigen::NumericalDiff<lmdif_gauss_functor> numDiff(functor);
+        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss_functor>,double> lm(numDiff);
+        lm.parameters.maxfev = 2000;
+        lm.parameters.xtol = 1.0e-10;
+        int ret = lm.minimize(x);
+        // check return values
+        if (ret !=1){
+            qDebug() << "Fitting unsuccesfull";
+        }
+        ycenter += x(1);
+    }
+    //calculate cuts in x direction
+    for(int i=0;i<4;i++){
+        Eigen::MatrixXd tmp = mRawHist.block<100,1024>((i+1)*100,0);
+        Eigen::VectorXd cut = tmp.colwise().sum().transpose();
+        Eigen::VectorXd x(3);
+        x << cut.maxCoeff(), cut.size()/2 , 50;
+        lmdif_gauss_functor functor(cut,cut.size());
+        Eigen::NumericalDiff<lmdif_gauss_functor> numDiff(functor);
+        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss_functor>,double> lm(numDiff);
+        lm.parameters.maxfev = 2000;
+        lm.parameters.xtol = 1.0e-10;
+        int ret = lm.minimize(x);
+        // check return values
+        if (ret !=1){
+            qDebug() << "Fitting unsuccesfull";
+        }
+        xcenter += x(1);
+    }
+    mCenter(0) = std::round(xcenter/4);
+    mCenter(1) = std::round(ycenter/4);
+    mCenteredHist = mRawHist.block<800,800>(mCenter(1)-400,mCenter(0)-400); //Commented for testing reasons
+    //mCenteredHist = mRawHist;
 }
 
 void Mpa2dHist::updateRoi(){
@@ -147,6 +234,7 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
         mEnergyMapFiltered = mRoiGrid[i]->getContent(mEnergyMapFiltered,0);
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
+    projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
     return projection;
 }
 

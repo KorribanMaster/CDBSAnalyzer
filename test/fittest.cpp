@@ -1,6 +1,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
+#include "qcustomplot.h"
 
 // Generic functor
 template<typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
@@ -64,6 +65,28 @@ int main(int argc, char *argv[]){
 
     int ret = lm.minimize(x);
     functor(x,fvec);
+    QVector<double> data(101),energy(101),fit(101);
+    for (int i=0; i<101; ++i)
+    {
+        data[i] = y(i);
+        fit[i] = fvec(i);
+        energy[i] = i;
+    }
+    QCustomPlot *plot = new QCustomPlot();
+    plot->addGraph();
+    plot->graph(0)->setData(energy, data);
+    plot->addGraph();
+    plot->graph(1)->setData(energy, fit);
+    // give the axes some labels:
+    plot->xAxis->setLabel("x");
+    plot->yAxis->setLabel("y");
+    // set axes ranges, so we see all data:
+    plot->xAxis->setRange(-5, 5);
+    plot->yAxis->setRange(0, 1);
+    plot->replot();
+    plot->show();
+    int i =1;
+    i++;
 
     return 1;
 }

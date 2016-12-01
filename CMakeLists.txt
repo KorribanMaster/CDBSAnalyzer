@@ -7,11 +7,6 @@ MESSAGE("CDB Analyzer")
 MESSAGE("Eicke Hecht")
 
 
-OPTION(WITH_ROOT "Build ROOT dependent apps" OFF)
-OPTION(WITH_PYTHON2 "Build Python2 modules" OFF)
-OPTION(WITH_PYTHON3 "Build Python3 modules (overrides WITH_PYTHON2)" ON)
-option(WITH_MGL2 "Build mgl2 dependent gui" ON)
-
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 SET(CMAKE_INSTALL_BINDIR bin)
 SET(CMAKE_INSTALL_LIBDIR lib)
@@ -27,37 +22,10 @@ INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5Conc
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-if(WITH_MGL2)
-    find_package(MathGL2 REQUIRED)
-    include_directories(${MATHGL2_INCLUDE_DIRS})
-    #   add_executable(myexe main.cpp)
-    #   target_link_libraries(myexe ${MATHGL2_LIBRARIES})
-endif()
-
-IF(WITH_PYTHON2 OR WITH_PYTHON3)
-    IF(WITH_PYTHON3)
-        FIND_PACKAGE(PythonLibs 3 REQUIRED)
-        STRING(REGEX REPLACE "[^0-9]" "" boost_py_version ${PYTHONLIBS_VERSION_STRING})
-    ELSE()
-        FIND_PACKAGE(PythonLibs 2.6 REQUIRED)       
-    ENDIF()
-ENDIF()
-
-IF(WITH_ROOT)
-    MESSAGE(STATUS "Building with ROOT depencencies")
-    ADD_DEFINITIONS(-DBUILD_WITH_ROOT)
-    FIND_PACKAGE(ROOT 5.34.30 REQUIRED COMPONENTS Hist Tree RHTTP Graf Gui)
-    SET(MY_ROOT_LIBRARIES Hist Tree)
-    SET(EICKE_ROOT_LIBRARIES Graf Gui)
-    INCLUDE_DIRECTORIES(${ROOT_INCLUDE_DIRS})
-ENDIF()
-
-
-
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
-#-Wall -Wno-long-long -pedantic
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -fPIC")
+#-Wall -Wno-long-long -pedantic -g
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fPIC")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # LIBS
@@ -127,7 +95,7 @@ add_executable(maptest test/maptest.cpp)
 target_link_libraries(maptest cdbpixel roipixel abstractpixel)
 
 add_executable(hist2dtest test/hist2dtest.cpp)
-target_link_libraries(hist2dtest mpa2dhist mpa1dhist cdbpixel roipixel abstractpixel ${MATHGL2_LIBRARIES})
+target_link_libraries(hist2dtest mpa2dhist mpa1dhist cdbpixel roipixel abstractpixel )
 
 add_executable(plottest test/plottest.cpp)
 target_link_libraries(plottest plotwindow)

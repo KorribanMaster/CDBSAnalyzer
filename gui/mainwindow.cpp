@@ -35,8 +35,8 @@ void MainWindow::on_saveButton_clicked()
     for(int i=0;i<mMpaHist->mCdbHists.size();i++){
         Mpa1dHist *hist = mMpaHist->mCdbHists.at(i);
         out << hist->mName << "\n";
-        for(int n=0;n<hist->mSize;i++){
-            out << hist->mEnergyScale(i) <<"; " << hist->mRawHist(i) << "\n";
+        for(int n=0;n<hist->mRawHist.size();n++){
+            out << hist->mEnergyScale(n) <<"; " << hist->mRawHist(n) << "\n";
         }
 
     }

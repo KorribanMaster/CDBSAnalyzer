@@ -8,8 +8,8 @@ double RoiPixel::content(){
     return mContent;
 }
 
-std::vector<CdbPixel*> RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
-    std::vector<CdbPixel*> remaining;
+void RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
+    //std::vector<CdbPixel*> remaining;
     if (depth < mMaxDepth){
         for(int n = 0;n<pxList.size();n++){
             CdbPixel *px = pxList[n];
@@ -18,11 +18,11 @@ std::vector<CdbPixel*> RoiPixel::getContent(std::vector<CdbPixel*> pxList,int de
                 //pixel is inside
             }
             else if (px->inside(this)==0 && AbstractPixel::inside(px) ==0) {
-                remaining.push_back(px);
+                //remaining.push_back(px);
                 //pixel is completely not inside.
             }
             else {
-                remaining.push_back(px);
+                //remaining.push_back(px);
                 //pixel is partially inside
                 std::vector<CdbPixel*> subList= px->split();
                 getContent(subList,depth+1);
@@ -38,5 +38,5 @@ std::vector<CdbPixel*> RoiPixel::getContent(std::vector<CdbPixel*> pxList,int de
             }
         }
     }
-    return remaining;
+    //return remaining;
 }

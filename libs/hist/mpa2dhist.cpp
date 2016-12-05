@@ -4,6 +4,7 @@
 #include <unsupported/Eigen/NumericalDiff>
 
 #include <QDebug>
+#include <QtConcurrent>
 
 template<typename _Scalar, int NX=Eigen::Dynamic, int NY=Eigen::Dynamic>
 struct Functor
@@ -220,7 +221,7 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
     Mpa1dHist *projection = new Mpa1dHist(mName);
     projection->setSize(mRoiGrid.size());
     std::vector<CdbPixel*> remaining;
-    remaining.reserve(mEnergyMap.size());
+    //remaining.reserve(mEnergyMap.size());
     for(int i= 0;i<mEnergyMap.size();i++){
         CdbPixel *px = mEnergyMap[i];
         int nInside = px->inside(mRoiBorder);
@@ -230,8 +231,14 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
         }
     }
     mEnergyMapFiltered = remaining;
+    std::vector<QFuture<void>> futures(mRoiGrid.size());
     for (int i=0;i<mRoiGrid.size();i++){
-        mEnergyMapFiltered = mRoiGrid[i]->getContent(mEnergyMapFiltered,0);
+        QFuture<void> future = QtConcurrent::run(mRoiGrid[i],&RoiPixel::getContent,remaining,0);
+        futures[i] = future;
+
+    }
+    for (int i=0;i<mRoiGrid.size();i++){
+        while(!futures[i].isFinished()); //wait till computation has finished;
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
     projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);

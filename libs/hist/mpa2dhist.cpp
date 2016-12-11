@@ -53,6 +53,8 @@ Mpa2dHist::Mpa2dHist(QString name)
     mName = name;
     mMaxDepth = 8;
     mEnergyCenter = Eigen::Array2d(511,511);
+    mCenteredHistSize = 800;
+    mCdbCounter = 0;
 
 }
 
@@ -61,15 +63,22 @@ Mpa2dHist::Mpa2dHist(QString name, int xbins, int ybins){
     mName = name;
     mMaxDepth =8;
     mEnergyCenter = Eigen::Array2d(511,511);
+    mCenteredHistSize = 800;
+    mCdbCounter = 0;
 
 
 }
 
 Mpa2dHist::~Mpa2dHist(){
-
+    mRoiGrid.clear();
+    mEnergyMap.clear();
+    mEnergyMapFiltered.clear();
+    delete mRoiBorder;
 }
 
 void Mpa2dHist::setSize(int xbins, int ybins){
+    mXSize = xbins;
+    mYSize = ybins;
     mRawHist.resize(xbins,ybins);
     mXEnergyscale.resize(xbins);
     mYEnergyscale.resize(ybins);
@@ -143,9 +152,9 @@ void Mpa2dHist::findCenter(){
         }
         xcenter += x(1);
     }
-    mCenter(0) = std::round(xcenter/4);
-    mCenter(1) = std::round(ycenter/4);
-    mCenteredHist = mRawHist.block<800,800>(mCenter(1)-400,mCenter(0)-400); //Commented for testing reasons
+    mCenter(0) = xcenter/4;
+    mCenter(1) = ycenter/4;
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
     //mCenteredHist = mRawHist;
 }
 
@@ -214,11 +223,12 @@ void Mpa2dHist::updateMap(){
 
 }
 
-Mpa1dHist* Mpa2dHist::projectCDBS(){
+MpaCdbHist* Mpa2dHist::projectCDBS(){
     findCenter();
     updateMap();
     updateRoi();
-    Mpa1dHist *projection = new Mpa1dHist(mName);
+    QString histName = mName + QString("_CDBS%d").arg(mCdbCounter);
+    MpaCdbHist *projection = new MpaCdbHist(histName);
     projection->setSize(mRoiGrid.size());
     std::vector<CdbPixel*> remaining;
     //remaining.reserve(mEnergyMap.size());
@@ -238,7 +248,7 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
 
     }
     for (int i=0;i<mRoiGrid.size();i++){
-        while(!futures[i].isFinished()); //wait till computation has finished;
+        futures[i].waitForFinished(); //wait till computation has finished;
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
     projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
@@ -247,13 +257,10 @@ Mpa1dHist* Mpa2dHist::projectCDBS(){
 
 
 
-Mpa1dHist* Mpa2dHist::projectCDBS(double roiWidth, double roiLength, double binWidth){
+MpaCdbHist* Mpa2dHist::projectCDBS(double roiWidth, double roiLength, double binWidth){
     setRoi(roiWidth,roiLength);
     setEnergyBinWidth(binWidth);
-    findCenter();
-    updateMap();
-    updateRoi();
-    Mpa1dHist *projection = new Mpa1dHist(mName);
+    MpaCdbHist *projection = projectCDBS();
     return projection;
 
 }

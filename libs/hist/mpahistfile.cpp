@@ -11,6 +11,15 @@ MpaHistFile::MpaHistFile(QString fileName, QString settingsFileName,QString name
 }
 
 MpaHistFile::~MpaHistFile(){
+    for(int i=0;i<m2dHists.size();i++){
+        delete m2dHists[i];
+    }
+    for(int i=0;i<m1dHists.size();i++){
+        delete m1dHists[i];
+    }
+    for(int i=0;i<mCdbHists.size();i++){
+        delete mCdbHists[i];
+    }
 
 }
 
@@ -128,8 +137,10 @@ void MpaHistFile::computeCdbHists(double roiWidth,double roiLength,double binWid
         Mpa2dHist *hist = m2dHists.at(i);
         hist->setRoi(roiWidth,roiLength);
         hist->setEnergyBinWidth(binWidth);
-        Mpa1dHist *cdbHist = hist->projectCDBS();
+        MpaCdbHist *cdbHist = hist->projectCDBS();
         mCdbHists.push_back(cdbHist);
     }
+
+
 
 }

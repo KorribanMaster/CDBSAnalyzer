@@ -33,55 +33,57 @@ INCLUDE_DIRECTORIES(libs
     libs/pixel
     libs/hist
     gui
+    gui/tables
+    gui/widgets
     qcustomplot
     
 )
 
-ADD_LIBRARY(abstractpixel SHARED libs/pixel/abstractpixel.cpp)
-target_link_libraries(abstractpixel)
-
-add_library(cdbpixel SHARED libs/pixel/cdbpixel.cpp)
-target_link_libraries(cdbpixel abstractpixel)
-
-add_library(roipixel SHARED libs/pixel/roipixel.cpp)
-target_link_libraries(roipixel abstractpixel)
-
-add_library(mpahistfile SHARED libs/hist/mpahistfile.cpp)
-target_link_libraries(mpahistfile mpa1dhist mpa2dhist)
-
-add_library(mpa1dhist SHARED libs/hist/mpa1dhist.cpp)
-target_link_libraries(mpa1dhist abstractpixel roipixel cdbpixel)
-
-add_library(mpa2dhist SHARED libs/hist/mpa2dhist.cpp)
-target_link_libraries(mpa2dhist abstractpixel roipixel cdbpixel)
-
 add_library(qcustomplot SHARED qcustomplot/qcustomplot.cpp)
 target_link_libraries(qcustomplot)
 
+add_library(hist SHARED
+    libs/hist/mpa1dhist.cpp
+    libs/hist/mpa2dhist.cpp
+    libs/hist/mpacdbhist.cpp
+    libs/hist/mparefhist.cpp
+    libs/hist/mpahistfile.cpp
+    libs/hist/histmanager.cpp
+    libs/hist/histinfo.cpp
+    )
+target_link_libraries(hist pixel)
+
+add_library(pixel SHARED
+    libs/pixel/abstractpixel.cpp
+    libs/pixel/roipixel.cpp
+    libs/pixel/cdbpixel.cpp
+    )
 
 #GUI
-#set(gui_files gui/*.ui)
-#source_group(gui FILES ${gui_files})
-#QT5_WRAP_UI(guis_h ${gui_files})
-
-#set_property(${gui_files} DIRECTORY gui)
-
-add_library(mainwindow SHARED gui/mainwindow.cpp)
-target_link_libraries(mainwindow Qt5::Widgets mpahistfile abstractpixel)
+add_library(mainwindow SHARED
+    #gui/mainwindow.cpp
+    gui/mainwindow2.cpp
+    )
+target_link_libraries(mainwindow Qt5::Widgets hist plotwindow widgets tables)
 
 add_library(plotwindow SHARED gui/plotwindow.cpp)
-target_link_libraries(plotwindow mpa1dhist mpa2dhist qcustomplot)
+target_link_libraries(plotwindow hist qcustomplot)
 
+add_library(tables SHARED
+    gui/tables/histtable.cpp
+    )
+target_link_libraries(tables hist)
 
-INSTALL(TARGETS abstractpixel cdbpixel roipixel
-    LIBRARY DESTINATION lib
-)
-
+add_library(widgets SHARED
+    gui/widgets/plotwidget.cpp
+    gui/widgets/mapplotwidget.cpp
+    )
+target_link_libraries(widgets hist qcustomplot)
 
 
 # APPS
 ADD_EXECUTABLE(cdbanalyzer main.cpp)
-TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow abstractpixel )
+TARGET_LINK_LIBRARIES(cdbanalyzer mainwindow pixel )
 
 INSTALL(TARGETS cdbanalyzer
     RUNTIME DESTINATION bin
@@ -89,13 +91,13 @@ INSTALL(TARGETS cdbanalyzer
 
 #TESTS
 add_executable(pixeltest test/pixeltest.cpp)
-target_link_libraries(pixeltest abstractpixel roipixel cdbpixel)
+target_link_libraries(pixeltest pixel)
 
 add_executable(maptest test/maptest.cpp)
-target_link_libraries(maptest cdbpixel roipixel abstractpixel)
+target_link_libraries(maptest pixel)
 
 add_executable(hist2dtest test/hist2dtest.cpp)
-target_link_libraries(hist2dtest mpa2dhist mpa1dhist cdbpixel roipixel abstractpixel )
+target_link_libraries(hist2dtest pixel hist)
 
 add_executable(plottest test/plottest.cpp)
 target_link_libraries(plottest plotwindow)

@@ -12,7 +12,7 @@
 int main(){
     int size = 400;
     Mpa2dHist *hist = new Mpa2dHist("hist",size,size);
-    Mpa1dHist *projection;
+    MpaCdbHist *projection;
     hist->setCenter(size/2,size/2);
     hist->setCalibration(60,60);
     hist->setRoi(200,1000);

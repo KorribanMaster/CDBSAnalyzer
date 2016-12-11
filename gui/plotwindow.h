@@ -1,6 +1,9 @@
 #ifndef PLOTWINDOW_H
 #define PLOTWINDOW_H
 
+#include "mpa1dhist.h"
+#include "mpa2dhist.h"
+
 #include <QMainWindow>
 
 namespace Ui {
@@ -14,6 +17,8 @@ class PlotWindow : public QMainWindow
 public:
     explicit PlotWindow(QWidget *parent = 0);
     ~PlotWindow();
+    void showHist(Mpa1dHist *hist);
+    void showHist(Mpa2dHist *hist);
 
 private:
     Ui::PlotWindow *ui;

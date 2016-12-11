@@ -4,8 +4,11 @@
 #include <QObject>
 #include <Eigen/Dense>
 
-class Mpa1dHist
+class Mpa1dHist : public QObject
+
 {
+    Q_OBJECT
+
 public:
     Mpa1dHist(QString name);
     Mpa1dHist(QString name,int size);

@@ -201,10 +201,16 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="actionSettings_File"/>
    </widget>
    <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionSettings_File">
+   <property name="text">
+    <string>Settings File</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

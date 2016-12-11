@@ -28,7 +28,7 @@ public:
 
     QList<Mpa1dHist*> m1dHists;
     QList<Mpa2dHist*> m2dHists;
-    QList<Mpa1dHist*> mCdbHists;
+    QList<MpaCdbHist*> mCdbHists;
 
 private:
 

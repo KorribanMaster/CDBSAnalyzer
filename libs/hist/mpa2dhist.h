@@ -8,11 +8,13 @@
 #include <abstractpixel.h>
 #include <cdbpixel.h>
 #include <roipixel.h>
-#include <mpa1dhist.h>
+#include <mpacdbhist.h>
 
 
-class Mpa2dHist
+class Mpa2dHist : public QObject
 {
+    Q_OBJECT
+
 public:
     Mpa2dHist(QString name);
     Mpa2dHist(QString name, int xbins, int ybins);
@@ -30,8 +32,8 @@ public:
     void updateRoi();
     void updateMap();
 
-    Mpa1dHist* projectCDBS();
-    Mpa1dHist* projectCDBS(double roiWidth, double roiLength, double binWidth);
+    MpaCdbHist* projectCDBS();
+    MpaCdbHist* projectCDBS(double roiWidth, double roiLength, double binWidth);
 
 
     Eigen::MatrixXd mRawHist;
@@ -47,13 +49,17 @@ public:
     std::vector<CdbPixel*> mEnergyMapFiltered;
     std::vector<RoiPixel*> mRoiGrid;
     RoiPixel *mRoiBorder;
-    RoiPixel *mTestBorder;
+
 
     double mRoiWidth;
     double mRoiLength;
     double mEnergyBinWidth;
 
     int mMaxDepth;
+    int mXSize;
+    int mYSize;
+    int mCenteredHistSize;
+    int mCdbCounter;
 
 
     QString mName;

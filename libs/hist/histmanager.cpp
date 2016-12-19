@@ -324,7 +324,7 @@ void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes
 
 void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames){
     for(int i=0; i< histNames.size();i++){
-        MpaRefHist *hist = new MpaRefHist(getCdbHist(referenceHistName),getCdbHist(histNames[i]));
+        MpaRefHist *hist = new MpaRefHist(getCdbHist(histNames[i]),getCdbHist(referenceHistName));
         mRefHists.append(hist);
         HistInfo info;
         info.fillInfo(hist);

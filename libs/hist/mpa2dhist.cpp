@@ -159,6 +159,7 @@ void Mpa2dHist::findCenter(){
 }
 
 void Mpa2dHist::updateRoi(){
+    mRoiGrid.clear();
     //Roi Border points. See drawing in lab report.
     Eigen::Vector2d p1;
     Eigen::Vector2d p2;
@@ -253,7 +254,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
     projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
-    projection->setRoiInformation(mRoiWidth,mRoiLength,mEnergyBinWidth);
+    projection->setRoiInformation(mRoiLength,mRoiWidth,mEnergyBinWidth);
     projection->calculateFoldover();
     return projection;
 }

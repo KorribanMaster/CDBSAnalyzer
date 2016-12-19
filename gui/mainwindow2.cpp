@@ -15,6 +15,8 @@ MainWindow2::MainWindow2(QWidget *parent) :
   mRefTable = new HistTable(this);
   mMapTable = new HistTable(this);
   mManager = new HistManager(this);
+  mPlot = new PlotWidget();
+  //mPlot->hide();
   //mManager->moveToThread(&mThread);
   //mThread.start();
   connect(mManager,SIGNAL(updatedCdbHistList(QList<HistInfo>)),mCdbsTable,SLOT(updateInfoList(QList<HistInfo>)));
@@ -135,7 +137,7 @@ void MainWindow2::addRef(QList<HistInfo> list){
 }
 
 void MainWindow2::plotCdbsButtonClicked(){
-    //mPlot->deleteLater();
+    mPlot->deleteLater();
     mPlot = new PlotWidget();
     QStringList list = mCdbsTable->getChecked();
     foreach (QString name, list) {
@@ -146,5 +148,12 @@ void MainWindow2::plotCdbsButtonClicked(){
 }
 
 void MainWindow2::plotRefButtonClicked(){
-
+    mPlot->deleteLater();
+    mPlot = new PlotWidget();
+    QStringList list = mCdbsTable->getChecked();
+    foreach (QString name, list) {
+        MpaRefHist *hist = mManager->getRefHist(name);
+        mPlot->addHist(hist);
+    }
+    mPlot->show();
 }

@@ -11,18 +11,22 @@ MpaRefHist::MpaRefHist(MpaCdbHist *hist, MpaCdbHist *norm)
     if(hist->mEnergyBinWidth != norm->mEnergyBinWidth) qDebug()<< "Warning: Different bin width";
     if(hist->mRoiLength != norm->mRoiLength) qDebug() << "Warning: Different roi length";
     if(hist->mRoiWidth != norm->mRoiWidth) qDebug() << "Warning: Different roi width";
-    mSize = hist->mSize;
-    mRefHist.resize(mSize);
-    mRefFoldoverHist.resize(mSize/2);
-    for(int i=0; i< mSize;i++){
-        mRefHist(i) = hist->mNormHist(i)/norm->mNormHist(i);
-    }
-    for(int i=0; i< mSize/2;i++){
-        mRefFoldoverHist(i) = hist->mNormFoldoverHist(i)/norm->mNormFoldoverHist(i);
-    }
     mName = hist->mName;
     mRefName = norm->mName;
     setRoiInformation(hist->mRoiWidth,hist->mRoiLength,hist->mEnergyBinWidth);
+    mSize = hist->mSize;
+    mRefHist.resize(mSize);
+    mEnergyScale.resize(mSize);
+    mRefFoldoverHist.resize(mSize/2);
+    mFoldoverEnergyScale.resize(mSize/2);
+    for(int i=0; i< mSize;i++){
+        mRefHist(i) = hist->mNormHist(i)/norm->mNormHist(i);
+        mEnergyScale(i) = hist->mEnergyScale(i);
+    }
+    for(int i=0; i< mSize/2;i++){
+        mRefFoldoverHist(i) = hist->mNormFoldoverHist(i)/norm->mNormFoldoverHist(i);
+        mFoldoverEnergyScale(i) = 511e3+i*mEnergyBinWidth;
+    }
 }
 
 MpaRefHist::~MpaRefHist(){

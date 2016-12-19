@@ -177,7 +177,7 @@ void Mpa2dHist::updateRoi(){
     corners[1] = p1+v2;
     corners[2] = p2+v2;
     corners[3] = p2-v2;
-    mRoiBorder = new RoiPixel(corners);
+    mRoiBorder = new RoiPixel(corners,mDepth);
 
     //RoiPixels. Assume the binWidth*n=roiLength
     //should be generalized
@@ -188,7 +188,7 @@ void Mpa2dHist::updateRoi(){
        corners[1] = c2+i*v3;
        corners[2] = c2+(i+1)*v3;
        corners[3] = c1+(i+1)*v3;
-       RoiPixel *px = new RoiPixel(corners);
+       RoiPixel *px = new RoiPixel(corners,mDepth);
        mRoiGrid.push_back(px);
     }
 
@@ -228,6 +228,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     updateMap();
     updateRoi();
     QString histName = mName + QString("_CDBS%1").arg(mCdbCounter);
+    mCdbCounter++;
     MpaCdbHist *projection = new MpaCdbHist(histName);
     projection->setSize(mRoiGrid.size());
     std::vector<CdbPixel*> remaining;
@@ -252,15 +253,22 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
         projection->setBinContent(i,mRoiGrid[i]->content());
     }
     projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
+    projection->setRoiInformation(mRoiWidth,mRoiLength,mEnergyBinWidth);
+    projection->calculateFoldover();
     return projection;
 }
 
 
 
-MpaCdbHist* Mpa2dHist::projectCDBS(double roiWidth, double roiLength, double binWidth){
+MpaCdbHist* Mpa2dHist::projectCDBS(double roiWidth, double roiLength, double binWidth, int depth){
+    setDepth(depth);
     setRoi(roiWidth,roiLength);
     setEnergyBinWidth(binWidth);
     MpaCdbHist *projection = projectCDBS();
     return projection;
 
+}
+
+void Mpa2dHist::setDepth(int depth){
+    mDepth = depth;
 }

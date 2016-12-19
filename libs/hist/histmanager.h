@@ -53,12 +53,14 @@ public:
     QStringList getRefHistList();
     int numRefHists();
 public slots:
+    void saveHists(QString saveFolderName);
+
     void loadHist(QString fileName,QString name);
     void loadSettings(QString settingsFileName);
 
-    void projectCDBS(QString histName,double roiWidth, double roiLength, double binWidth);
-    void projectCDBS(int histIndex,double roiWidth, double roiLength, double binWidth);
-    void projectAllCDBS(double roiWidth, double roiLength, double binWidth);
+    void projectCDBS(QString histName,double roiWidth, double roiLength, double binWidth,int depth);
+    void projectCDBS(int histIndex,double roiWidth, double roiLength, double binWidth,int depth);
+    void projectAllCDBS(double roiWidth, double roiLength, double binWidth,int depth);
 
     void referenceCDBS(QString referenceHistName,QStringList histNames);
     void referenceCDBS(int referenceHistIndex,QVector<int> histIndexes);

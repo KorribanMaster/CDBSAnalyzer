@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     corner[1] = Eigen::Vector2d(0,1);
     corner[2] = Eigen::Vector2d(1,1);
     corner[3] = Eigen::Vector2d(1,0);
-    RoiPixel *gridPx = new RoiPixel(corner);
+    RoiPixel *gridPx = new RoiPixel(corner,5);
     CdbPixel *splitPx = new CdbPixel(corner,100);
 
     corner[0] = Eigen::Vector2d(0.5,0.5);

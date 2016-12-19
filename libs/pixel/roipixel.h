@@ -9,8 +9,8 @@
 class RoiPixel : public AbstractPixel
 {
 public:
-    RoiPixel(const std::vector<Eigen::Vector2d> corners): AbstractPixel(corners), mContent(0),mMaxDepth(5) {}
-    RoiPixel(const std::vector<Eigen::Array2d> corners): AbstractPixel(corners), mContent(0),mMaxDepth(5) {}
+    RoiPixel(const std::vector<Eigen::Vector2d> corners,int depth): AbstractPixel(corners), mContent(0),mMaxDepth(depth) {}
+    RoiPixel(const std::vector<Eigen::Array2d> corners,int depth): AbstractPixel(corners), mContent(0),mMaxDepth(depth) {}
     void addContent(double counts);
     void getContent(std::vector<CdbPixel*> pxList,int depth);
     double content();

@@ -26,6 +26,7 @@ public:
     void setEnergyBinWidth(double binWidth);
     void setCalibration(float xcal,float ycal);
     void setCenter(float xcenter,float ycenter);
+    void setDepth(int depth);
 
 
     void findCenter();
@@ -33,7 +34,7 @@ public:
     void updateMap();
 
     MpaCdbHist* projectCDBS();
-    MpaCdbHist* projectCDBS(double roiWidth, double roiLength, double binWidth);
+    MpaCdbHist* projectCDBS(double roiWidth, double roiLength, double binWidth,int depth);
 
 
     Eigen::MatrixXd mRawHist;
@@ -54,6 +55,8 @@ public:
     double mRoiWidth;
     double mRoiLength;
     double mEnergyBinWidth;
+
+    int mDepth;
 
     int mMaxDepth;
     int mXSize;

@@ -19,7 +19,7 @@ public:
     explicit PlotWidget(QWidget *parent = 0);
     ~PlotWidget();
     void addHist(Mpa1dHist *hist);
-    void addHist(MpaCdbHist * hist);
+    void addHist(MpaCdbHist *hist);
     void addHist(MpaRefHist *hist);
 
 private:

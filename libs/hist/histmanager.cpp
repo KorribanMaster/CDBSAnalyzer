@@ -251,10 +251,10 @@ int HistManager::numRefHists(){
     return mRefHists.size();
 }
 
-void HistManager::projectCDBS(int histIndex, double roiWidth, double roiLength, double binWidth){
+void HistManager::projectCDBS(int histIndex, double roiWidth, double roiLength, double binWidth,int depth){
     Mpa2dHist * hist = get2dHist(histIndex);
     //No threading support
-    MpaCdbHist *projection = hist->projectCDBS(roiWidth,roiLength,binWidth);
+    MpaCdbHist *projection = hist->projectCDBS(roiWidth,roiLength,binWidth,depth);
 
     //Threading support
 //    QFuture<MpaCdbHist*> future;
@@ -270,10 +270,10 @@ void HistManager::projectCDBS(int histIndex, double roiWidth, double roiLength, 
     emit updatedCdbHistList(mCdbHistInfos);
 }
 
-void HistManager::projectCDBS(QString histName, double roiWidth, double roiLength, double binWidth){
+void HistManager::projectCDBS(QString histName, double roiWidth, double roiLength, double binWidth,int depth){
     Mpa2dHist * hist = get2dHist(histName);
     //No threading support
-    MpaCdbHist *projection = hist->projectCDBS(roiWidth,roiLength,binWidth);
+    MpaCdbHist *projection = hist->projectCDBS(roiWidth,roiLength,binWidth,depth);
     //Threading support
 //    QFuture<MpaCdbHist*> future;
 //    future = QtConcurrent::run(hist,&Mpa2dHist::projectCDBS,roiWidth,roiLength,binWidth);
@@ -289,10 +289,10 @@ void HistManager::projectCDBS(QString histName, double roiWidth, double roiLengt
 
 }
 
-void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWidth){
+void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWidth, int depth){
     for(int i=0;i<m2dHists.size();i++){
         //No threading support
-        MpaCdbHist *projection = m2dHists[i]->projectCDBS();
+        MpaCdbHist *projection = m2dHists[i]->projectCDBS(roiWidth,roiLength,binWidth,depth);
         /*
          * Threading support
         QFuture<MpaCdbHist*> future;
@@ -300,6 +300,7 @@ void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWi
         future.waitForFinished();
         MpaCdbHist *projection =future.result();
         */
+        projection->calculateFoldover();
         mCdbHists.append(projection);
         HistInfo info;
         info.fillInfo(projection);
@@ -333,3 +334,38 @@ void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames
     emit updatedRefHistList(mRefHistInfos);
 }
 
+void HistManager::saveHists(QString saveFolderName){
+    QString dirName = saveFolderName+"/"+QDateTime::currentDateTime().toString();
+    QDir().mkdir(dirName);
+    foreach (MpaCdbHist *hist, mCdbHists) {
+        QString fileName = dirName +"/"+hist->mName+".txt";
+        QFile file(fileName);
+        if(!file.open(QIODevice::ReadWrite)){
+            qDebug() << "Failed to open file";
+        }
+        QTextStream out(&file);
+        out << "#" << hist->mName << "\n";
+        out << "# Projection Histogram\n";
+        out << "'Energy; Counts\n";
+        for(int i=0;i<hist->mProjectionHist.size();i++){
+            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) <<"\n";
+        }
+        out << "# Norm Histogram\n";
+        out << "'Energy; Counts\n";
+        for(int i=0;i<hist->mNormHist.size();i++){
+            out << hist->mEnergyScale(i) << "; " << hist->mNormHist(i) <<"\n";
+        }
+        out << "# Foldover Histogram\n";
+        out << "'Energy; Counts\n";
+        for(int i=0;i<hist->mFoldoverHist.size();i++){
+            out << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mFoldoverHist(i) <<"\n";
+        }
+        out << "# Norm Foldover Histogram\n";
+        out << "'Energy; Counts\n";
+        for(int i=0;i<hist->mNormFoldoverHist.size();i++){
+            out << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mNormFoldoverHist(i) <<"\n";
+        }
+        file.close();
+
+    }
+}

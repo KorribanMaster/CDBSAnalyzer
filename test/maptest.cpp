@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     corner[1] = Eigen::Vector2d(511e3-4*mCal,511e3+5*mCal);
     corner[2] = Eigen::Vector2d(511e3+5*mCal,511e3-4*mCal);
     corner[3] = Eigen::Vector2d(511e3+4*mCal,511e3-5*mCal);
-    RoiPixel *gridPx = new RoiPixel(corner);
+    RoiPixel *gridPx = new RoiPixel(corner,5);
     int counter=0;
     for(int i = 0;i<map.size();i++){
         int inside = map[i]->inside(gridPx);

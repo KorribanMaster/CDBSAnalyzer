@@ -3,11 +3,10 @@
 HistTable::HistTable(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    mRows =1;
-    mColumns = 5;
+    mRows =0;
+    mColumns = 7;
     const HistInfo info;
     mInfoList.append(info);
-
 }
 
 QVariant HistTable::headerData(int section, Qt::Orientation orientation, int role) const
@@ -27,6 +26,10 @@ QVariant HistTable::headerData(int section, Qt::Orientation orientation, int rol
                     return QString("Bin Width");
                 case 4:
                     return QString("Counts");
+                case 5:
+                    return QString("Size");
+                case 6:
+                    return QString("Ref Name");
                 }
             }
     }
@@ -54,6 +57,9 @@ QVariant HistTable::data(const QModelIndex &index, int role) const
     int row = index.row();
     int col = index.column();
     const HistInfo *info;
+    if (mRows==0){
+        return QVariant();
+    }
     switch(role){
     case Qt::DisplayRole:
         switch (col) {
@@ -72,7 +78,24 @@ QVariant HistTable::data(const QModelIndex &index, int role) const
         case 4:
             info = &mInfoList.at(row);
             return info->counts();
+        case 5:
+            info = &mInfoList.at(row);
+            return info->size();
+        case 6:
+            info = &mInfoList.at(row);
+            return info->ref();
         }
+    case Qt::CheckStateRole:
+        if(col==0){
+            if(mCheckedList.at(row)==1){
+                return Qt::Checked;
+            }
+            else{
+                return Qt::Unchecked;
+            }
+
+        }
+
 
     }
     return QVariant::Invalid;
@@ -80,10 +103,46 @@ QVariant HistTable::data(const QModelIndex &index, int role) const
 }
 
 void HistTable::updateInfoList(QList<HistInfo> list){
-    mColumns = list.size();
+    int tmp =mRows;
+    mRows = list.size();
+    beginInsertRows(QModelIndex(), tmp,mRows-tmp);
     mInfoList = list;
+    mCheckedList.resize(mRows);
     QModelIndex tl= createIndex(0,0);
     QModelIndex rb= createIndex(mRows-1,mColumns-1);
     qDebug() << data(tl);
+    endInsertRows();
     emit dataChanged(tl,rb);
+
+}
+
+Qt::ItemFlags HistTable::flags(const QModelIndex &index) const
+{
+    if(index.column()==0){
+        return Qt::ItemIsUserCheckable | QAbstractTableModel::flags(index);
+    }
+    else{
+        return QAbstractTableModel::flags(index);
+    }
+}
+
+bool HistTable::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if(role == Qt::CheckStateRole)
+    {
+        mCheckedList.replace(index.row(),value.toBool());
+
+    }
+    emit dataChanged(index,index);
+    return true;
+}
+
+QStringList HistTable::getChecked(){
+    QStringList list;
+    for (int i=0; i<mCheckedList.size();i++) {
+       if (mCheckedList.at(i)){
+           list.append(mInfoList.at(i).name());
+       }
+    }
+    return list;
 }

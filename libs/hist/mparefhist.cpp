@@ -1,4 +1,5 @@
 #include "mparefhist.h"
+#include <QDebug>
 
 MpaRefHist::MpaRefHist(MpaCdbHist *hist, MpaCdbHist *norm)
 {
@@ -11,6 +12,8 @@ MpaRefHist::MpaRefHist(MpaCdbHist *hist, MpaCdbHist *norm)
     if(hist->mRoiLength != norm->mRoiLength) qDebug() << "Warning: Different roi length";
     if(hist->mRoiWidth != norm->mRoiWidth) qDebug() << "Warning: Different roi width";
     mSize = hist->mSize;
+    mRefHist.resize(mSize);
+    mRefFoldoverHist.resize(mSize/2);
     for(int i=0; i< mSize;i++){
         mRefHist(i) = hist->mNormHist(i)/norm->mNormHist(i);
     }

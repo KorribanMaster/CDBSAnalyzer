@@ -22,7 +22,7 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(this,SIGNAL(referenceHist(QString,QStringList)),mManager,SLOT(referenceCDBS(QString,QStringList)));
   connect(this,SIGNAL(loadSettings(QString)),mManager,SLOT(loadSettings(QString)));
 
-  emit loadSettings("../settings/test.ini");
+  emit loadSettings("../settings/CDBSUpgrade.ini");
 
   connect(ui->buttonImport,SIGNAL(clicked(bool)),this,SLOT(loadButtonClicked()));
   connect(ui->buttonCompute,SIGNAL(clicked(bool)),this,SLOT(computeButtonClicked()));

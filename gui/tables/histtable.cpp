@@ -3,8 +3,8 @@
 HistTable::HistTable(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    mRows =5;
-    mColumns = 1;
+    mRows =1;
+    mColumns = 5;
     const HistInfo info;
     mInfoList.append(info);
 
@@ -56,21 +56,21 @@ QVariant HistTable::data(const QModelIndex &index, int role) const
     const HistInfo *info;
     switch(role){
     case Qt::DisplayRole:
-        switch (row) {
+        switch (col) {
         case 0:
-            info = &mInfoList.at(col);
+            info = &mInfoList.at(row);
             return info->name();
         case 1:
-            info = &mInfoList.at(col);
+            info = &mInfoList.at(row);
             return info->roiWidth();
         case 2:
-            info = &mInfoList.at(col);
+            info = &mInfoList.at(row);
             return info->roiLength();
         case 3:
-            info = &mInfoList.at(col);
+            info = &mInfoList.at(row);
             return info->binWidth();
         case 4:
-            info = &mInfoList.at(col);
+            info = &mInfoList.at(row);
             return info->counts();
         }
 

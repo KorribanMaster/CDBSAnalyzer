@@ -227,7 +227,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     findCenter();
     updateMap();
     updateRoi();
-    QString histName = mName + QString("_CDBS%d").arg(mCdbCounter);
+    QString histName = mName + QString("_CDBS%1").arg(mCdbCounter);
     MpaCdbHist *projection = new MpaCdbHist(histName);
     projection->setSize(mRoiGrid.size());
     std::vector<CdbPixel*> remaining;

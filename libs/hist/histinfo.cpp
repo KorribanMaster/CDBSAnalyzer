@@ -8,40 +8,40 @@ HistInfo::HistInfo()
 
 
 
-QString HistInfo::binWidth() const{
+QString HistInfo::binWidth() {
     return mBinWidth;
 }
 
-QString HistInfo::roiLength() const{
+QString HistInfo::roiLength() {
     return mRoiLength;
 }
 
-QString HistInfo::roiWidth() const{
+QString HistInfo::roiWidth() {
     return mRoiWidth;
 }
 
-QString HistInfo::name() const{
+QString HistInfo::name() {
     return mName;
 }
 
-QString HistInfo::index() const{
+QString HistInfo::index() {
     return mIndex;
 }
 
-QString HistInfo::ref() const{
+QString HistInfo::ref() {
     return mRefName;
 }
 
-QString HistInfo::counts() const{
+QString HistInfo::counts() {
     return mCounts;
 }
 
-QString HistInfo::size() const{
+QString HistInfo::size() {
     return mSize;
 }
 
 void HistInfo::fillInfo(Mpa1dHist *hist){
-    mName = hist->mName;
+    //mName = hist->mName;
     mRefName = "NA";
     mRoiLength = "NA";
     mRoiWidth = "NA";

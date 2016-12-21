@@ -14,15 +14,15 @@ class HistInfo //: public QObject
 public:
     HistInfo();
 
-    QString name() const;
-    QString index() const;
-    QString type() const;
-    QString ref() const;
-    QString binWidth()const;
-    QString roiLength() const;
-    QString roiWidth() const;
-    QString counts() const;
-    QString size()const;
+    QString name() ;
+    QString index();
+    QString type() ;
+    QString ref() ;
+    QString binWidth();
+    QString roiLength();
+    QString roiWidth();
+    QString counts();
+    QString size();
 
     void fillInfo(Mpa1dHist* hist);
     void fillInfo(Mpa2dHist* hist);

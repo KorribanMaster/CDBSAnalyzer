@@ -20,6 +20,7 @@ public:
     void showHist(Mpa1dHist *hist);
     void showHist(Mpa2dHist *hist);
 
+
 private:
     Ui::PlotWindow *ui;
 };

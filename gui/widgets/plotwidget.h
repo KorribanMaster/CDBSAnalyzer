@@ -22,6 +22,11 @@ public:
     void addHist(MpaCdbHist *hist);
     void addHist(MpaRefHist *hist);
 
+    void mouseWheel();
+    void mousePress();
+    void selectionChanged();
+
+
 private:
     Ui::PlotWidget *ui;
 };

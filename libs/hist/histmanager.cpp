@@ -61,11 +61,31 @@ void HistManager::loadHist(QString fileName, QString name){
                 QString histName = name + "_" +tmp;
                 Mpa2dHist *hist = new Mpa2dHist(histName);
                 hist->setSize(lineLength,lineLength);
-                QString cal = QStringLiteral("Calibration/Coinc%1").arg(num2dHist-1);
-                QList<QVariant> calList = mSettings->value(cal).toList();
-                float xcal = calList.at(0).toFloat();
-                float ycal = calList.at(1).toFloat();
-                hist->setCalibration(xcal,ycal);
+//                QString cal = QStringLiteral("Calibration/Coinc%1").arg(num2dHist-1);
+//                QList<QVariant> calList = mSettings->value(cal).toList();
+//                float xcal = calList.at(0).toFloat();
+//                float ycal = calList.at(1).toFloat();
+//                hist->setCalibration(xcal,ycal);
+                    QString key = QString("Pair%1").arg(num2dHist);
+                    QString pair = mSettings->value(key).toString();
+                    float mec2 = mSettings->value("mec2").toFloat();
+                    QStringList pairs = pair.split("x");
+                    mSettings->beginGroup(pairs.at(0));
+                    float energyXCal =mSettings->value("EnergyChannel").toFloat();
+                    float energyXOffset = mSettings->value("EnergyOffset").toFloat();
+                    float cdbXOffset = mSettings->value("CDBOffset").toFloat();
+                    float peakXChannel = (mec2-energyXOffset)/energyXCal-cdbXOffset;
+                    mSettings->endGroup();
+                    mSettings->beginGroup(pairs.at(1));
+                    float energyYCal =mSettings->value("EnergyChannel").toFloat();
+                    float energyYOffset = mSettings->value("EnergyOffset").toFloat();
+                    float cdbYOffset = mSettings->value("CDBOffset").toFloat();
+                    float peakYChannel = (mec2-energyYOffset)/energyYCal-cdbYOffset;
+                    mSettings->endGroup();
+                    hist->setCalibration(energyXCal*1e3,energyYCal*1e3);
+                    hist->setCenter(peakXChannel,peakYChannel);
+
+
                 m2dHists.append(hist);
             }
 
@@ -94,15 +114,15 @@ void HistManager::loadHist(QString fileName, QString name){
     }
     mpaFile.close();
     for(int i = m1dHists.size()-num1dHist;i<m1dHists.size();i++){
-        HistInfo info;
-        info.fillInfo(m1dHists[i]);
-        info.setIndex(i);
+        HistInfo *info;
+        info->fillInfo(m1dHists[i]);
+        info->setIndex(i);
         m1dHistInfos.append(info);
     }
     for(int i = m2dHists.size()-num2dHist;i<m2dHists.size();i++){
-        HistInfo info;
-        info.fillInfo(m2dHists[i]);
-        info.setIndex(i);
+        HistInfo *info;
+        info->fillInfo(m2dHists[i]);
+        info->setIndex(i);
         m2dHistInfos.append(info);
     }
     if(num1dHist>0)
@@ -263,9 +283,9 @@ void HistManager::projectCDBS(int histIndex, double roiWidth, double roiLength, 
 //    MpaCdbHist *projection =future.result();
 
     mCdbHists.append(projection);
-    HistInfo info;
-    info.fillInfo(projection);
-    info.setIndex(mCdbHists.size()-1);
+    HistInfo *info;
+    info->fillInfo(projection);
+    info->setIndex(mCdbHists.size()-1);
     mCdbHistInfos.append(info);
     emit updatedCdbHistList(mCdbHistInfos);
 }
@@ -281,9 +301,9 @@ void HistManager::projectCDBS(QString histName, double roiWidth, double roiLengt
 //    MpaCdbHist *projection =future.result();
 
     mCdbHists.append(projection);
-    HistInfo info;
-    info.fillInfo(projection);
-    info.setIndex(mCdbHists.size()-1);
+    HistInfo *info;
+    info->fillInfo(projection);
+    info->setIndex(mCdbHists.size()-1);
     mCdbHistInfos.append(info);
     emit updatedCdbHistList(mCdbHistInfos);
 
@@ -302,9 +322,9 @@ void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWi
         */
         projection->calculateFoldover();
         mCdbHists.append(projection);
-        HistInfo info;
-        info.fillInfo(projection);
-        info.setIndex(mCdbHists.size()-1);
+        HistInfo *info;
+        info->fillInfo(projection);
+        info->setIndex(mCdbHists.size()-1);
         mCdbHistInfos.append(info);
     }    
     emit updatedCdbHistList(mCdbHistInfos);
@@ -314,9 +334,9 @@ void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes
     for(int i=0; i< histIndexes.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(referenceHistIndex),getCdbHist(histIndexes[i]));
         mRefHists.append(hist);
-        HistInfo info;
-        info.fillInfo(hist);
-        info.setIndex(mCdbHists.size()-1);
+        HistInfo *info;
+        info->fillInfo(hist);
+        info->setIndex(mCdbHists.size()-1);
         mRefHistInfos.append(info);
     }
     emit updatedRefHistList(mRefHistInfos);
@@ -326,9 +346,9 @@ void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames
     for(int i=0; i< histNames.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(histNames[i]),getCdbHist(referenceHistName));
         mRefHists.append(hist);
-        HistInfo info;
-        info.fillInfo(hist);
-        info.setIndex(mCdbHists.size()-1);
+        HistInfo *info;
+        info->fillInfo(hist);
+        info->setIndex(mCdbHists.size()-1);
         mRefHistInfos.append(info);
     }
     emit updatedRefHistList(mRefHistInfos);

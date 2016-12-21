@@ -32,6 +32,7 @@ public:
     void findCenter();
     void updateRoi();
     void updateMap();
+    void centerHist();
 
     MpaCdbHist* projectCDBS();
     MpaCdbHist* projectCDBS(double roiWidth, double roiLength, double binWidth,int depth);

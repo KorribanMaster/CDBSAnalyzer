@@ -158,6 +158,10 @@ void Mpa2dHist::findCenter(){
     //mCenteredHist = mRawHist;
 }
 
+void Mpa2dHist::centerHist(){
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
+}
+
 void Mpa2dHist::updateRoi(){
     mRoiGrid.clear();
     //Roi Border points. See drawing in lab report.
@@ -225,7 +229,8 @@ void Mpa2dHist::updateMap(){
 }
 
 MpaCdbHist* Mpa2dHist::projectCDBS(){
-    findCenter();
+    //findCenter();
+    centerHist();
     updateMap();
     updateRoi();
     QString histName = mName + QString("_CDBS%1").arg(mCdbCounter);

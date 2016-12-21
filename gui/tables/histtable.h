@@ -27,7 +27,7 @@ public:
 
     QStringList getChecked();
 private:
-    QList<HistInfo> mInfoList;
+    QVector<HistInfo*> mInfoList;
     QVector<bool> mCheckedList;
     int mRows;
     int mColumns;
@@ -35,7 +35,7 @@ private:
 
 
 public slots:
-    void updateInfoList(QList<HistInfo> list);
+    void updateInfoList(QList<HistInfo *> list);
 private:
 
 signals:

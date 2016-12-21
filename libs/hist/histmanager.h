@@ -21,13 +21,13 @@ public:
 
 private:
     QList<Mpa1dHist*> m1dHists;
-    QList<HistInfo> m1dHistInfos;
+    QList<HistInfo*> m1dHistInfos;
     QList<Mpa2dHist*> m2dHists;
-    QList<HistInfo> m2dHistInfos;
+    QList<HistInfo*> m2dHistInfos;
     QList<MpaCdbHist*> mCdbHists;
-    QList<HistInfo> mCdbHistInfos;
+    QList<HistInfo*> mCdbHistInfos;
     QList<MpaRefHist*> mRefHists;
-    QList<HistInfo> mRefHistInfos;
+    QList<HistInfo*> mRefHistInfos;
     QSettings *mSettings;
     QString mSettingsFileName;
 
@@ -69,10 +69,10 @@ signals:
     void projectionReady();
     void referenceReady();
 
-    void updated1dHistList(QList<HistInfo> list);
-    void updated2dHistList(QList<HistInfo> list);
-    void updatedCdbHistList(QList<HistInfo> list);
-    void updatedRefHistList(QList<HistInfo> list);
+    void updated1dHistList(QList<HistInfo*> list);
+    void updated2dHistList(QList<HistInfo*> list);
+    void updatedCdbHistList(QList<HistInfo*> list);
+    void updatedRefHistList(QList<HistInfo*> list);
 };
 
 #endif // HISTMANAGER_H

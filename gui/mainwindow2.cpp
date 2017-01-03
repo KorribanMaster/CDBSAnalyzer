@@ -19,10 +19,10 @@ MainWindow2::MainWindow2(QWidget *parent) :
   //mPlot->hide();
   //mManager->moveToThread(&mThread);
   //mThread.start();
-  connect(mManager,SIGNAL(updatedCdbHistList(QList<HistInfo*>)),mCdbsTable,SLOT(updateInfoList(QList<HistInfo*>)));
-  connect(mManager,SIGNAL(updatedCdbHistList(QList<HistInfo*>)),this,SLOT(addRef(QList<HistInfo*>)));
-  connect(mManager,SIGNAL(updated2dHistList(QList<HistInfo*>)),mMapTable,SLOT(updateInfoList(QList<HistInfo*>)));
-  connect(mManager,SIGNAL(updatedRefHistList(QList<HistInfo*>)),mRefTable,SLOT(updateInfoList(QList<HistInfo*>)));
+  connect(mManager,SIGNAL(updatedCdbHistList(QList<HistInfo>)),mCdbsTable,SLOT(updateInfoList(QList<HistInfo>)));
+  connect(mManager,SIGNAL(updatedCdbHistList(QList<HistInfo>)),this,SLOT(addRef(QList<HistInfo>)));
+  connect(mManager,SIGNAL(updated2dHistList(QList<HistInfo>)),mMapTable,SLOT(updateInfoList(QList<HistInfo>)));
+  connect(mManager,SIGNAL(updatedRefHistList(QList<HistInfo>)),mRefTable,SLOT(updateInfoList(QList<HistInfo>)));
   connect(this,SIGNAL(loadHist(QString,QString)),mManager,SLOT(loadHist(QString,QString)));
   connect(this,SIGNAL(computeAll(double,double,double,int)),mManager,SLOT(projectAllCDBS(double,double,double,int)));
   connect(this,SIGNAL(referenceHist(QString,QStringList)),mManager,SLOT(referenceCDBS(QString,QStringList)));
@@ -127,12 +127,12 @@ void MainWindow2::fileNameEdited(){
     }
 }
 
-void MainWindow2::addRef(QList<HistInfo*> list){
+void MainWindow2::addRef(QList<HistInfo> list){
     ui->buttonRef->setEnabled(true);
     int tmp = mCDBSCount;
     mCDBSCount = list.size();
     for (tmp;tmp<mCDBSCount;tmp++){
-        ui->comboRef->addItem(list.at(tmp)->name());
+        ui->comboRef->addItem(list.at(tmp).name());
     }
 }
 

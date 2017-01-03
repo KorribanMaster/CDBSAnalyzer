@@ -22,6 +22,7 @@ public:
     void addHist(MpaCdbHist *hist);
     void addHist(MpaRefHist *hist);
 
+public slots:
     void mouseWheel();
     void mousePress();
     void selectionChanged();

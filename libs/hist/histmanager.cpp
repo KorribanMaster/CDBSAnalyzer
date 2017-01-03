@@ -114,15 +114,11 @@ void HistManager::loadHist(QString fileName, QString name){
     }
     mpaFile.close();
     for(int i = m1dHists.size()-num1dHist;i<m1dHists.size();i++){
-        HistInfo *info;
-        info->fillInfo(m1dHists[i]);
-        info->setIndex(i);
+        HistInfo info(m1dHists[i],i);
         m1dHistInfos.append(info);
     }
     for(int i = m2dHists.size()-num2dHist;i<m2dHists.size();i++){
-        HistInfo *info;
-        info->fillInfo(m2dHists[i]);
-        info->setIndex(i);
+        HistInfo info(m2dHists[i],i);
         m2dHistInfos.append(info);
     }
     if(num1dHist>0)
@@ -283,9 +279,7 @@ void HistManager::projectCDBS(int histIndex, double roiWidth, double roiLength, 
 //    MpaCdbHist *projection =future.result();
 
     mCdbHists.append(projection);
-    HistInfo *info;
-    info->fillInfo(projection);
-    info->setIndex(mCdbHists.size()-1);
+    HistInfo info(projection,mCdbHists.size()-1);
     mCdbHistInfos.append(info);
     emit updatedCdbHistList(mCdbHistInfos);
 }
@@ -301,9 +295,7 @@ void HistManager::projectCDBS(QString histName, double roiWidth, double roiLengt
 //    MpaCdbHist *projection =future.result();
 
     mCdbHists.append(projection);
-    HistInfo *info;
-    info->fillInfo(projection);
-    info->setIndex(mCdbHists.size()-1);
+    HistInfo info(projection,mCdbHists.size()-1);
     mCdbHistInfos.append(info);
     emit updatedCdbHistList(mCdbHistInfos);
 
@@ -322,9 +314,7 @@ void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWi
         */
         projection->calculateFoldover();
         mCdbHists.append(projection);
-        HistInfo *info;
-        info->fillInfo(projection);
-        info->setIndex(mCdbHists.size()-1);
+        HistInfo info(projection,mCdbHists.size()-1);
         mCdbHistInfos.append(info);
     }    
     emit updatedCdbHistList(mCdbHistInfos);
@@ -334,9 +324,7 @@ void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes
     for(int i=0; i< histIndexes.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(referenceHistIndex),getCdbHist(histIndexes[i]));
         mRefHists.append(hist);
-        HistInfo *info;
-        info->fillInfo(hist);
-        info->setIndex(mCdbHists.size()-1);
+        HistInfo info(hist,mRefHists.size()-1);
         mRefHistInfos.append(info);
     }
     emit updatedRefHistList(mRefHistInfos);
@@ -346,9 +334,7 @@ void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames
     for(int i=0; i< histNames.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(histNames[i]),getCdbHist(referenceHistName));
         mRefHists.append(hist);
-        HistInfo *info;
-        info->fillInfo(hist);
-        info->setIndex(mCdbHists.size()-1);
+        HistInfo info(hist,mRefHists.size()-1);
         mRefHistInfos.append(info);
     }
     emit updatedRefHistList(mRefHistInfos);

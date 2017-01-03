@@ -12,27 +12,28 @@ class HistInfo //: public QObject
 {
     //Q_OBJECT
 public:
-    HistInfo();
 
-    QString name() ;
-    QString index();
-    QString type() ;
-    QString ref() ;
-    QString binWidth();
-    QString roiLength();
-    QString roiWidth();
-    QString counts();
-    QString size();
+    HistInfo(Mpa1dHist *hist,int index);
+    HistInfo(Mpa2dHist *hist,int index);
+    HistInfo(MpaCdbHist *hist,int index);
+    HistInfo(MpaRefHist *hist,int index);
 
+    QString name() const;
+    QString index() const;
+    QString type() const;
+    QString ref() const;
+    QString binWidth() const;
+    QString roiLength()const;
+    QString roiWidth()const;
+    QString counts()const;
+    QString size() const;
+
+private:
     void fillInfo(Mpa1dHist* hist);
     void fillInfo(Mpa2dHist* hist);
     void fillInfo(MpaCdbHist* hist);
     void fillInfo(MpaRefHist* hist);
     void setIndex(int index);
-
-
-private:
-
 
 
     QString mName;

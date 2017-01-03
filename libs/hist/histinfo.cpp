@@ -1,47 +1,73 @@
 #include "histinfo.h"
 
-HistInfo::HistInfo()
+HistInfo::HistInfo(Mpa1dHist *hist,int index)
 {
-
-
+    mName = hist->mName;
+    mRefName = "NA";
+    mRoiLength = "NA";
+    mRoiWidth = "NA";
+    mBinWidth = "NA";
+    int counts = 0;
+    for(int i=0; i< hist->mSize; i++){
+        counts += hist->mRawHist(i);
+    }
+    mCounts = QString("%1").arg(counts);
+    mSize = QString("%1").arg(hist->mSize);
+    mIndex = QString("%1").arg(index);
 }
 
 
+HistInfo::HistInfo(Mpa2dHist *hist,int index)
+{
+    fillInfo(hist);
+    setIndex(index);
+}
+HistInfo::HistInfo(MpaCdbHist *hist,int index)
+{
+    fillInfo(hist);
+    setIndex(index);
+}
+HistInfo::HistInfo(MpaRefHist *hist,int index)
+{
+    fillInfo(hist);
+    setIndex(index);
+}
 
-QString HistInfo::binWidth() {
+
+QString HistInfo::binWidth() const{
     return mBinWidth;
 }
 
-QString HistInfo::roiLength() {
+QString HistInfo::roiLength() const{
     return mRoiLength;
 }
 
-QString HistInfo::roiWidth() {
+QString HistInfo::roiWidth() const{
     return mRoiWidth;
 }
 
-QString HistInfo::name() {
+QString HistInfo::name() const{
     return mName;
 }
 
-QString HistInfo::index() {
+QString HistInfo::index() const{
     return mIndex;
 }
 
-QString HistInfo::ref() {
+QString HistInfo::ref() const{
     return mRefName;
 }
 
-QString HistInfo::counts() {
+QString HistInfo::counts() const{
     return mCounts;
 }
 
-QString HistInfo::size() {
+QString HistInfo::size() const{
     return mSize;
 }
 
 void HistInfo::fillInfo(Mpa1dHist *hist){
-    //mName = hist->mName;
+    mName = hist->mName;
     mRefName = "NA";
     mRoiLength = "NA";
     mRoiWidth = "NA";

@@ -48,7 +48,7 @@ public slots:
     void referenceButtonClicked();
     void importNameEdited();
     void fileNameEdited();
-    void addRef(QList<HistInfo*> list);
+    void addRef(QList<HistInfo> list);
     void plotCdbsButtonClicked();
     void plotRefButtonClicked();
 };

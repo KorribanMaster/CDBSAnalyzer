@@ -13,6 +13,7 @@ PlotWidget::PlotWidget(QWidget *parent) :
     ui->customPlot->legend->setVisible(true);
     QFont legendFont = font();
     legendFont.setPointSize(10);
+
     ui->customPlot->legend->setFont(legendFont);
     ui->customPlot->legend->setSelectedFont(legendFont);
     ui->customPlot->legend->setSelectableParts(QCPLegend::spItems);
@@ -41,13 +42,20 @@ void PlotWidget::addHist(Mpa1dHist *hist){
         y[i] = hist->mRawHist(i);
     }
     int index = ui->customPlot->graphCount();
+    QPen pen;
+    pen.setColor(QColor(qSin(index*0.3)*100+100, qSin(index*0.6+0.7)*100+100, qSin(index*0.4+0.6)*100+100));
     ui->customPlot->addGraph();
     ui->customPlot->graph(index)->setData(x,y);
+    ui->customPlot->graph(index)->setPen(pen);
+    ui->customPlot->graph(index)->setName(hist->mName);
     if(index==0){
         ui->customPlot->xAxis->setLabel("Energy");
         ui->customPlot->yAxis->setLabel("Counts");
         ui->customPlot->xAxis->setRange(x.first(),x.last());
         ui->customPlot->yAxis->setRange(0,hist->mRawHist.maxCoeff());
+        ui->customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+        ui->customPlot->yAxis2->setScaleType(QCPAxis::stLogarithmic);
+
     }
     ui->customPlot->replot();
 }
@@ -60,8 +68,12 @@ void PlotWidget::addHist(MpaCdbHist *hist){
         y[i] = hist->mNormHist(i);
     }
     int index = ui->customPlot->graphCount();
+    QPen pen;
+    pen.setColor(QColor(qSin(index*0.3)*100+100, qSin(index*0.6+0.7)*100+100, qSin(index*0.4+0.6)*100+100));
     ui->customPlot->addGraph();
     ui->customPlot->graph(index)->setData(x,y);
+    ui->customPlot->graph(index)->setPen(pen);
+    ui->customPlot->graph(index)->setName(hist->mName);
     if(index==0){
         ui->customPlot->xAxis->setLabel("Energy");
         ui->customPlot->yAxis->setLabel("Counts");
@@ -79,8 +91,12 @@ void PlotWidget::addHist(MpaRefHist *hist){
         y[i] = hist->mRefHist(i);
     }
     int index = ui->customPlot->graphCount();
+    QPen pen;
+    pen.setColor(QColor(qSin(index*0.3)*100+100, qSin(index*0.6+0.7)*100+100, qSin(index*0.4+0.6)*100+100));
     ui->customPlot->addGraph();
     ui->customPlot->graph(index)->setData(x,y);
+    ui->customPlot->graph(index)->setPen(pen);
+    ui->customPlot->graph(index)->setName(hist->mName);
     if(index==0){
         ui->customPlot->xAxis->setLabel("Energy");
         ui->customPlot->yAxis->setLabel("Counts");

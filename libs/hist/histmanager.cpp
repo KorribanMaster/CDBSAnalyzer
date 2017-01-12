@@ -351,27 +351,30 @@ void HistManager::saveHists(QString saveFolderName){
         }
         QTextStream out(&file);
         out << "#" << hist->mName << "\n";
-        out << "# Projection Histogram\n";
-        out << "'Energy; Counts\n";
+        //out << "# Projection Histogram\n";
+        out << "#bin width = " << hist->mEnergyBinWidth << "\n#roi width = "<< hist->mRoiWidth << "\n#roi length = "<< hist->mRoiLength <<"\n#counts = "<< hist->mNorm;
+        out << "#Energy; Counts; Norm\n";
         for(int i=0;i<hist->mProjectionHist.size();i++){
-            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) <<"\n";
-        }
-        out << "# Norm Histogram\n";
-        out << "'Energy; Counts\n";
-        for(int i=0;i<hist->mNormHist.size();i++){
-            out << hist->mEnergyScale(i) << "; " << hist->mNormHist(i) <<"\n";
-        }
-        out << "# Foldover Histogram\n";
-        out << "'Energy; Counts\n";
-        for(int i=0;i<hist->mFoldoverHist.size();i++){
-            out << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mFoldoverHist(i) <<"\n";
-        }
-        out << "# Norm Foldover Histogram\n";
-        out << "'Energy; Counts\n";
-        for(int i=0;i<hist->mNormFoldoverHist.size();i++){
-            out << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mNormFoldoverHist(i) <<"\n";
+            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) << "; " << hist->mNormHist(i) << "\n";
         }
         file.close();
+        QString fileName2 = dirName +"/"+hist->mName+"_projection.txt";
+        QFile file2(fileName2);
+        if(!file2.open(QIODevice::ReadWrite)){
+            qDebug() << "Failed to open file";
+        }
+        QTextStream out2(&file2);
+        out2 << "#" << hist->mName << "\n";
+        out2 << "# Foldover Histogram\n";
+        out2 << "#bin width = " << hist->mEnergyBinWidth << "\n#roi width = "<< hist->mRoiWidth << "\n#roi length = "<< hist->mRoiLength <<"\n#counts = "<< hist->mNorm;
+        out2 << "#Energy; Counts; Norm\n";
+        for(int i=0;i<hist->mFoldoverHist.size();i++){
+            out2 << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mFoldoverHist(i) << "; " << hist->mNormFoldoverHist(i) <<"\n";
+        }
+
+        file2.close();
 
     }
+
+
 }

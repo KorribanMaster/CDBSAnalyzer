@@ -1,8 +1,8 @@
 #include "histinfo.h"
 
-HistInfo::HistInfo(Mpa1dHist *hist,int index)
+HistInfo::HistInfo(Mpa1dHist *hist,int index): mName(hist->mName)
 {
-    mName = hist->mName;
+//  mName = hist->mName;
     mRefName = "NA";
     mRoiLength = "NA";
     mRoiWidth = "NA";
@@ -17,17 +17,17 @@ HistInfo::HistInfo(Mpa1dHist *hist,int index)
 }
 
 
-HistInfo::HistInfo(Mpa2dHist *hist,int index)
+HistInfo::HistInfo(Mpa2dHist *hist,int index): mName(hist->mName)
 {
     fillInfo(hist);
     setIndex(index);
 }
-HistInfo::HistInfo(MpaCdbHist *hist,int index)
+HistInfo::HistInfo(MpaCdbHist *hist,int index): mName(hist->mName)
 {
     fillInfo(hist);
     setIndex(index);
 }
-HistInfo::HistInfo(MpaRefHist *hist,int index)
+HistInfo::HistInfo(MpaRefHist *hist,int index): mName(hist->mName)
 {
     fillInfo(hist);
     setIndex(index);
@@ -67,7 +67,7 @@ QString HistInfo::size() const{
 }
 
 void HistInfo::fillInfo(Mpa1dHist *hist){
-    mName = hist->mName;
+    //mName = hist->mName;
     mRefName = "NA";
     mRoiLength = "NA";
     mRoiWidth = "NA";
@@ -83,7 +83,7 @@ void HistInfo::fillInfo(Mpa1dHist *hist){
 }
 
 void HistInfo::fillInfo(Mpa2dHist *hist){
-    mName = hist->mName;
+    //mName = hist->mName;
     mRefName = "NA";
     mRoiLength = QString("%1").arg(hist->mRoiWidth);
     mRoiWidth = QString("%1").arg(hist->mRoiLength);
@@ -95,7 +95,7 @@ void HistInfo::fillInfo(Mpa2dHist *hist){
 }
 
 void HistInfo::fillInfo(MpaCdbHist *hist){
-    mName = hist->mName;
+    //mName = hist->mName;
     mRefName = "NA";
     mRoiLength = QString("%1").arg(hist->mRoiWidth);
     mRoiWidth = QString("%1").arg(hist->mRoiLength);
@@ -107,7 +107,7 @@ void HistInfo::fillInfo(MpaCdbHist *hist){
 }
 
 void HistInfo::fillInfo(MpaRefHist *hist){
-    mName = hist->mName;
+    //mName = hist->mName;
     mRefName = hist->mRefName;
     mRoiLength = QString("%1").arg(hist->mRoiWidth);
     mRoiWidth = QString("%1").arg(hist->mRoiLength);

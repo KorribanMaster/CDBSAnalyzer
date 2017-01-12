@@ -17,6 +17,7 @@ public:
     explicit MapPlotWidget(QWidget *parent = 0);
     ~MapPlotWidget();
     void addHist(Mpa2dHist *hist);
+    void addRoi(double roiWidth, double roiLength, double binWidth);
 
 private:
     Ui::MapPlotWidget *ui;

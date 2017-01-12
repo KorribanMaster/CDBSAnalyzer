@@ -47,6 +47,7 @@ private:
     QString mSize;
 
 
+
 signals:
 
 public slots:

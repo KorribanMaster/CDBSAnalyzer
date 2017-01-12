@@ -9,6 +9,7 @@
 #include "histmanager.h"
 #include "histtable.h"
 #include "plotwidget.h"
+#include "mapplotwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -28,6 +29,7 @@ private:
     HistTable *mMapTable;
     HistTable *mImportTable;
     PlotWidget *mPlot;
+    MapPlotWidget *mMapPlot;
     QThread mThread;
 
     int mCDBSCount;
@@ -46,6 +48,7 @@ public slots:
     void loadToolClicked();
     void computeButtonClicked();
     void referenceButtonClicked();
+    void previewButtonClicked();
     void importNameEdited();
     void fileNameEdited();
     void addRef(QList<HistInfo> list);

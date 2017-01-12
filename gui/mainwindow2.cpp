@@ -16,6 +16,7 @@ MainWindow2::MainWindow2(QWidget *parent) :
   mMapTable = new HistTable(this);
   mManager = new HistManager(this);
   mPlot = new PlotWidget();
+  mMapPlot = new MapPlotWidget();
   //mPlot->hide();
   //mManager->moveToThread(&mThread);
   //mThread.start();
@@ -39,6 +40,7 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(ui->actionSave_Session,SIGNAL(triggered(bool)),this,SLOT(saveClicked()));
   connect(ui->buttonPlotCdbs,SIGNAL(clicked(bool)),this,SLOT(plotCdbsButtonClicked()));
   connect(ui->buttonPlotRef,SIGNAL(clicked(bool)),this,SLOT(plotRefButtonClicked()));
+  connect(ui->buttonPreview,SIGNAL(clicked(bool)),this,SLOT(previewButtonClicked()));
 
   connect(ui->editImportName,SIGNAL(editingFinished()),this,SLOT(importNameEdited()));
   connect(ui->editFileName,SIGNAL(editingFinished()),this,SLOT(fileNameEdited()));
@@ -150,10 +152,27 @@ void MainWindow2::plotCdbsButtonClicked(){
 void MainWindow2::plotRefButtonClicked(){
     mPlot->deleteLater();
     mPlot = new PlotWidget();
-    QStringList list = mCdbsTable->getChecked();
+    QStringList list = mRefTable->getChecked();
     foreach (QString name, list) {
         MpaRefHist *hist = mManager->getRefHist(name);
         mPlot->addHist(hist);
     }
     mPlot->show();
+}
+
+void MainWindow2::previewButtonClicked(){
+    mMapPlot->deleteLater();
+    mMapPlot = new MapPlotWidget();
+    QStringList list = mMapTable->getChecked();
+    if (list.isEmpty()){
+        return;
+    }
+    mMapPlot->show();
+    Mpa2dHist *hist = mManager->get2dHist(list[0]);
+    hist->setEnergyBinWidth(ui->editBinWidth->text().toDouble());
+    hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
+    hist->updateRoi();
+    mMapPlot->addHist(hist);
+
+    return;
 }

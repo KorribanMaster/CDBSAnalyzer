@@ -36,6 +36,9 @@ void RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
                 mContent += px->counts();
                 //pixel is inside
             }
+            else if(px->inside(this)>0 && px->inside(this)<4){
+                mContent+=px->counts()/2;
+            }
         }
     }
     //return remaining;

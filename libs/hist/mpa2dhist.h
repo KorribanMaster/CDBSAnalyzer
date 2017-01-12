@@ -30,8 +30,10 @@ public:
 
 
     void findCenter();
+    void findCenter2d();
     void updateRoi();
     void updateMap();
+    void updateEnergyScale();
     void centerHist();
 
     MpaCdbHist* projectCDBS();
@@ -64,6 +66,7 @@ public:
     int mYSize;
     int mCenteredHistSize;
     int mCdbCounter;
+    bool mMapInitialised;
 
 
     QString mName;

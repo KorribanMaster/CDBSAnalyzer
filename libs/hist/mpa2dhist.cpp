@@ -47,6 +47,27 @@ struct lmdif_gauss_functor : Functor<double>
     }
 };
 
+struct lmdif_gauss2d_functor : Functor<double>
+{
+    const int mYSize;
+    Eigen::VectorXd mY;
+    lmdif_gauss2d_functor(const Eigen::VectorXd &y,int ysize) : Functor<double>(6,ysize), mYSize(ysize),mY(y) {}
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    {
+        assert(x.size()==6);
+        assert(fvec.size()==mYSize);
+        for(int i=0;i<std::sqrt(mYSize);i++){
+            for(int j=0;j<std::sqrt(mYSize);j++){
+                //implement error of gaussian
+                int sum = i*std::sqrt(mYSize)+j;
+                fvec(sum) = mY(sum) - ((x(0)*std::exp(-(std::pow((i-x(1)),2)/(2*std::pow(x(2),2)))))+(x(3)*std::exp(-(std::pow((j-x(4)),2)/(2*std::pow(x(5),2))))));
+            }
+
+        }
+        return 0;
+    }
+};
+
 Mpa2dHist::Mpa2dHist(QString name)
 {
     setSize(0,0);
@@ -55,6 +76,7 @@ Mpa2dHist::Mpa2dHist(QString name)
     mEnergyCenter = Eigen::Array2d(511,511);
     mCenteredHistSize = 800;
     mCdbCounter = 0;
+    mMapInitialised = false;
 
 }
 
@@ -65,6 +87,7 @@ Mpa2dHist::Mpa2dHist(QString name, int xbins, int ybins){
     mEnergyCenter = Eigen::Array2d(511,511);
     mCenteredHistSize = 800;
     mCdbCounter = 0;
+    mMapInitialised = false;
 
 
 }
@@ -104,12 +127,18 @@ void Mpa2dHist::setEnergyBinWidth(double binWidth){
 void Mpa2dHist::setCalibration(float xcal,float ycal){
     mCal(0)=xcal;
     mCal(1)= ycal;
+
 }
 
 void Mpa2dHist::setCenter(float xcenter, float ycenter){
     //This is a temporary solution with a fixed centerpoint
     mCenter(0)=xcenter;
     mCenter(1)= ycenter;
+}
+
+void Mpa2dHist::updateEnergyScale(){
+    mXEnergyscale.setLinSpaced(mXSize,511e3-(mCenter(0))*mCal(0),511e3+(mXSize-mCenter(0))*mCal(0));
+    mYEnergyscale.setLinSpaced(mYSize,511e3-(mCenter(1))*mCal(1),511e3+(mXSize-mCenter(1))*mCal(1));
 }
 
 void Mpa2dHist::findCenter(){
@@ -146,6 +175,7 @@ void Mpa2dHist::findCenter(){
         lm.parameters.maxfev = 2000;
         lm.parameters.xtol = 1.0e-10;
         int ret = lm.minimize(x);
+        qDebug() << lm.iter;
         // check return values
         if (ret !=1){
             qDebug() << "Fitting unsuccesfull";
@@ -154,6 +184,49 @@ void Mpa2dHist::findCenter(){
     }
     mCenter(0) = xcenter/4;
     mCenter(1) = ycenter/4;
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
+    //mCenteredHist = mRawHist;
+}
+
+void Mpa2dHist::findCenter2d(){
+    Eigen::Vector2d backup = mCenter;
+    Eigen::VectorXd x(6);
+
+    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
+    x << 1,cut.cols()/2,10,1,cut.rows()/2,10;
+    Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
+    lmdif_gauss2d_functor functor(y,y.size());
+    Eigen::NumericalDiff<lmdif_gauss2d_functor> numDiff(functor);
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2d_functor>,double> lm(numDiff);
+    lm.parameters.maxfev = 6000;
+    lm.parameters.xtol = 1.0e-4;
+    int ret = lm.minimize(x);
+    mCenter(0) = x(1)+400;
+    mCenter(1) = x(4)+400;
+    if (ret !=1){
+        qDebug() << "Fitting unsuccesfull";
+        qDebug() << "Increasing cut size";
+        Eigen::MatrixXd cut2 = mRawHist.block<800,800>(std::round(backup(1))-400,std::round(backup(0))-400);
+        x << 1,cut2.cols()/2,10,1,cut2.rows()/2,10;
+        Eigen::Map<Eigen::VectorXd> y2(cut2.data(), cut2.size());
+        lmdif_gauss2d_functor functor2(y2,y2.size());
+        Eigen::NumericalDiff<lmdif_gauss2d_functor> numDiff2(functor2);
+        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2d_functor>,double> lm2(numDiff2);
+        lm2.parameters.maxfev = 10000;
+        lm2.parameters.xtol = 1.0e-3;
+        int ret2 = lm2.minimize(x);
+        mCenter(0) = x(1)+std::round(backup(1))-400;
+        mCenter(1) = x(4)+std::round(backup(0))-400;
+        if (ret2 !=1){
+            qDebug() << "Fitting unsuccesfull";
+            qDebug() << "Using initial guess instead";
+            mCenter=backup;
+        }
+
+    }
+
+    mCenter(0) = x(1)+400;
+    mCenter(1) = x(4)+400;
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
     //mCenteredHist = mRawHist;
 }
@@ -229,9 +302,13 @@ void Mpa2dHist::updateMap(){
 }
 
 MpaCdbHist* Mpa2dHist::projectCDBS(){
-    //findCenter();
-    centerHist();
-    updateMap();
+
+    //centerHist();
+    if(!mMapInitialised){
+        findCenter2d();
+        updateMap();
+        mMapInitialised = true;
+    }
     updateRoi();
     QString histName = mName + QString("_CDBS%1").arg(mCdbCounter);
     mCdbCounter++;

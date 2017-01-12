@@ -99,17 +99,17 @@ QVariant HistTable::data(const QModelIndex &index, int role) const
 void HistTable::updateInfoList(QList<HistInfo> list){
     int tmp =mRows;
     mRows = list.size();
-    beginInsertRows(QModelIndex(), tmp,mRows-tmp);
+    beginInsertRows(QModelIndex(), tmp,mRows);
     //mInfoList = list;
     for(int i=tmp;i<mRows;i++){
-        mInfoList.append(list.at(i));
+        mInfoList.append(list[i]);
     }
     //mCheckedList.resize(mRows);
     QModelIndex tl= createIndex(tmp-1,0);
     QModelIndex rb= createIndex(mRows-1,mColumns-1);
     //qDebug() << data(tl);
-    emit dataChanged(tl,rb);
     endInsertRows();
+    emit dataChanged(tl,rb);
 
 
 }
@@ -138,8 +138,8 @@ bool HistTable::setData(const QModelIndex &index, const QVariant &value, int rol
 QStringList HistTable::getChecked(){
     QStringList list;
     for (int i=0; i<mCheckedList.size();i++) {
-       if (mCheckedList.at(i)){
-           list.append(mInfoList.at(i).name());
+       if (mCheckedList[i]){
+           list.append(mInfoList[i].name());
        }
     }
     return list;

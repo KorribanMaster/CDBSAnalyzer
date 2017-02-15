@@ -20,9 +20,10 @@ public:
     ~MpaCdbHist();
 
     void setSize(int nBins);
-    void setBinContent(int nBin,double counts);
+    void setBinContent(int nBin, double counts, double incomplete);
     void setRoiInformation(double roiWidth,double roiLength,double binWidth);
     void setCalibration(float channelToEnergy,float peakEnergy,float peakPosition);
+    double autoCalibration(double binWidth);
     void calculateFoldover();
     void calculateNorm();
 
@@ -41,7 +42,12 @@ public:
     Eigen::VectorXd mNormHist;
     Eigen::VectorXd mNormFoldoverHist;
     Eigen::VectorXd mFoldoverHist;
+    Eigen::VectorXd mProjectionHistError;
+    Eigen::VectorXd mNormHistError;
+    Eigen::VectorXd mNormFoldoverHistError;
+    Eigen::VectorXd mFoldoverHistError;
     Eigen::VectorXd mEnergyScale;
+    Eigen::VectorXd mEnergyScaleFoldover;
 };
 
 //MpaRefHist operator /(MpaCdbHist const& lhs,MpaCdbHist const& rhs);

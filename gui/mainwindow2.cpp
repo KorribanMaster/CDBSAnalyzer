@@ -15,8 +15,9 @@ MainWindow2::MainWindow2(QWidget *parent) :
   mRefTable = new HistTable(this);
   mMapTable = new HistTable(this);
   mManager = new HistManager(this);
-  mPlot = new PlotWidget();
+  mPlot = new PlotWidget2();
   mMapPlot = new MapPlotWidget();
+  mPlot2 = new PlotWidget2();
   //mPlot->hide();
   //mManager->moveToThread(&mThread);
   //mThread.start();
@@ -84,10 +85,9 @@ void MainWindow2::loadButtonClicked(){
 void MainWindow2::loadToolClicked(){
     QString tmp = ui->editFileName->text();
     if (tmp.isEmpty()) tmp = "/home/ehecht/git/CDBSAnalyzer/data";
-    QFileDialog *dialog = new QFileDialog(this);
-    dialog->setDirectory(tmp);
-    tmp = dialog->getOpenFileName();
-    ui->editFileName->setText(tmp);
+
+    QString tmp2 = QFileDialog::getOpenFileName(this,"Load Data",tmp);
+    ui->editFileName->setText(tmp2);
 }
 
 void MainWindow2::computeButtonClicked(){
@@ -139,19 +139,19 @@ void MainWindow2::addRef(QList<HistInfo> list){
 }
 
 void MainWindow2::plotCdbsButtonClicked(){
-    mPlot->deleteLater();
-    mPlot = new PlotWidget();
+    mPlot2->deleteLater();
+    mPlot2 = new PlotWidget2();
     QStringList list = mCdbsTable->getChecked();
     foreach (QString name, list) {
         MpaCdbHist *hist = mManager->getCdbHist(name);
-        mPlot->addHist(hist);
+        mPlot2->addHist(hist);
     }
-    mPlot->show();
+    mPlot2->show();
 }
 
 void MainWindow2::plotRefButtonClicked(){
     mPlot->deleteLater();
-    mPlot = new PlotWidget();
+    mPlot = new PlotWidget2();
     QStringList list = mRefTable->getChecked();
     foreach (QString name, list) {
         MpaRefHist *hist = mManager->getRefHist(name);

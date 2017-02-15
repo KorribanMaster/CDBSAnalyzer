@@ -35,11 +35,12 @@ INCLUDE_DIRECTORIES(libs
     gui
     gui/tables
     gui/widgets
-    qcustomplot
+    #qcustomplot
+    qcustomplot2
     
 )
 
-add_library(qcustomplot SHARED qcustomplot/qcustomplot.cpp)
+add_library(qcustomplot SHARED qcustomplot2/qcustomplot.cpp)
 target_link_libraries(qcustomplot)
 
 add_library(hist SHARED
@@ -76,6 +77,7 @@ target_link_libraries(tables hist)
 
 add_library(widgets SHARED
     gui/widgets/plotwidget.cpp
+    gui/widgets/plotwidget2.cpp
     gui/widgets/mapplotwidget.cpp
     )
 target_link_libraries(widgets hist qcustomplot)

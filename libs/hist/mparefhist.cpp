@@ -16,15 +16,19 @@ MpaRefHist::MpaRefHist(MpaCdbHist *hist, MpaCdbHist *norm)
     setRoiInformation(hist->mRoiWidth,hist->mRoiLength,hist->mEnergyBinWidth);
     mSize = hist->mSize;
     mRefHist.resize(mSize);
+    mRefHistError.resize(mSize);
     mEnergyScale.resize(mSize);
     mRefFoldoverHist.resize(mSize/2);
+    mRefFoldoverHistError.resize(mSize/2);
     mFoldoverEnergyScale.resize(mSize/2);
     for(int i=0; i< mSize;i++){
         mRefHist(i) = hist->mNormHist(i)/norm->mNormHist(i);
+        mRefHistError(i) = std::sqrt(std::pow(hist->mNormHistError(i)/hist->mNormHist(i),2)+std::pow(norm->mNormHistError(i)/norm->mNormHist(i),2))*mRefHist(i);
         mEnergyScale(i) = hist->mEnergyScale(i);
     }
     for(int i=0; i< mSize/2;i++){
         mRefFoldoverHist(i) = hist->mNormFoldoverHist(i)/norm->mNormFoldoverHist(i);
+        mRefFoldoverHistError(i) = std::sqrt(std::pow(hist->mNormFoldoverHistError(i)/hist->mNormFoldoverHist(i),2)+std::pow(norm->mNormFoldoverHistError(i)/norm->mNormFoldoverHist(i),2))*mRefFoldoverHist(i);
         mFoldoverEnergyScale(i) = 511e3+i*mEnergyBinWidth;
     }
 }

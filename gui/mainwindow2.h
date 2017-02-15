@@ -9,6 +9,7 @@
 #include "histmanager.h"
 #include "histtable.h"
 #include "plotwidget.h"
+#include "plotwidget2.h"
 #include "mapplotwidget.h"
 
 namespace Ui {
@@ -28,7 +29,8 @@ private:
     HistTable *mRefTable;
     HistTable *mMapTable;
     HistTable *mImportTable;
-    PlotWidget *mPlot;
+    PlotWidget2 *mPlot;
+    PlotWidget2 *mPlot2;
     MapPlotWidget *mMapPlot;
     QThread mThread;
 

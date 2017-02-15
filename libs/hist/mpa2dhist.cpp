@@ -68,6 +68,27 @@ struct lmdif_gauss2d_functor : Functor<double>
     }
 };
 
+struct lmdif_gauss2dex_functor : Functor<double>
+{
+    const int mYSize;
+    Eigen::VectorXd mY;
+    lmdif_gauss2dex_functor(const Eigen::VectorXd &y,int ysize) : Functor<double>(10,ysize), mYSize(ysize),mY(y) {}
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    {
+        assert(x.size()==10);
+        assert(fvec.size()==mYSize);
+        for(int i=0;i<std::sqrt(mYSize);i++){
+            for(int j=0;j<std::sqrt(mYSize);j++){
+                //implement error of gaussian
+                int sum = i*std::sqrt(mYSize)+j;
+                fvec(sum) = mY(sum) - ((x(0)*std::exp(-(std::pow((i-x(1)),2)/(2*std::pow(x(2),2)))))+(x(3)*std::exp(-(std::pow((j-x(4)),2)/(2*std::pow(x(5),2)))))+(x(6)*std::exp(-(std::pow(((j+mYSize - i)-x(7)),2)/(2*std::pow(x(8),2)))))+x(9));
+            }
+
+        }
+        return 0;
+    }
+};
+
 Mpa2dHist::Mpa2dHist(QString name)
 {
     setSize(0,0);
@@ -138,7 +159,15 @@ void Mpa2dHist::setCenter(float xcenter, float ycenter){
 
 void Mpa2dHist::updateEnergyScale(){
     mXEnergyscale.setLinSpaced(mXSize,511e3-(mCenter(0))*mCal(0),511e3+(mXSize-mCenter(0))*mCal(0));
-    mYEnergyscale.setLinSpaced(mYSize,511e3-(mCenter(1))*mCal(1),511e3+(mXSize-mCenter(1))*mCal(1));
+    mYEnergyscale.setLinSpaced(mYSize,511e3-(mCenter(1))*mCal(1),511e3+(mYSize-mCenter(1))*mCal(1));
+    qDebug() << "Corners map";
+    qDebug() << (511e3-400*mCal(0)) << (511e3+400*mCal(1));
+    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
+    qDebug() << 511e3+(mXSize-mCenter(1))*mCal(1);
+    qDebug() << 511e3-(mCenter(0))*mCal(0);
+    qDebug() << 511e3-(mCenter(1))*mCal(1);
+    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
+    qDebug() << 511e3-(mCenter(1))*mCal(1);
 }
 
 void Mpa2dHist::findCenter(){
@@ -193,7 +222,7 @@ void Mpa2dHist::findCenter2d(){
     Eigen::VectorXd x(6);
 
     Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
-    x << 1,cut.cols()/2,10,1,cut.rows()/2,10;
+    x << cut.maxCoeff(),cut.cols()/2,10,cut.maxCoeff(),cut.rows()/2,10;
     Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
     lmdif_gauss2d_functor functor(y,y.size());
     Eigen::NumericalDiff<lmdif_gauss2d_functor> numDiff(functor);
@@ -203,30 +232,31 @@ void Mpa2dHist::findCenter2d(){
     int ret = lm.minimize(x);
     mCenter(0) = x(1)+400;
     mCenter(1) = x(4)+400;
-    if (ret !=1){
-        qDebug() << "Fitting unsuccesfull";
-        qDebug() << "Increasing cut size";
-        Eigen::MatrixXd cut2 = mRawHist.block<800,800>(std::round(backup(1))-400,std::round(backup(0))-400);
-        x << 1,cut2.cols()/2,10,1,cut2.rows()/2,10;
-        Eigen::Map<Eigen::VectorXd> y2(cut2.data(), cut2.size());
-        lmdif_gauss2d_functor functor2(y2,y2.size());
-        Eigen::NumericalDiff<lmdif_gauss2d_functor> numDiff2(functor2);
-        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2d_functor>,double> lm2(numDiff2);
-        lm2.parameters.maxfev = 10000;
-        lm2.parameters.xtol = 1.0e-3;
-        int ret2 = lm2.minimize(x);
-        mCenter(0) = x(1)+std::round(backup(1))-400;
-        mCenter(1) = x(4)+std::round(backup(0))-400;
-        if (ret2 !=1){
-            qDebug() << "Fitting unsuccesfull";
-            qDebug() << "Using initial guess instead";
-            mCenter=backup;
-        }
+//    if (ret !=1){
+//        qDebug() << "Fitting unsuccesfull";
+//        qDebug() << "Increasing cut size";
+//        Eigen::MatrixXd cut2 = mRawHist.block<800,800>(std::round(backup(1))-400,std::round(backup(0))-400);
+//        x << 1,cut2.cols()/2,10,1,cut2.rows()/2,10;
+//        Eigen::Map<Eigen::VectorXd> y2(cut2.data(), cut2.size());
+//        lmdif_gauss2d_functor functor2(y2,y2.size());
+//        Eigen::NumericalDiff<lmdif_gauss2d_functor> numDiff2(functor2);
+//        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2d_functor>,double> lm2(numDiff2);
+//        lm2.parameters.maxfev = 10000;
+//        lm2.parameters.xtol = 1.0e-3;
+//        int ret2 = lm2.minimize(x);
+//        mCenter(0) = x(1)+std::round(backup(1))-400;
+//        mCenter(1) = x(4)+std::round(backup(0))-400;
+//        if (ret2 !=1){
+//            qDebug() << "Fitting unsuccesfull";
+//            qDebug() << "Using initial guess instead";
+//            mCenter=backup;
+//        }
 
-    }
+//  }
 
     mCenter(0) = x(1)+400;
     mCenter(1) = x(4)+400;
+    qDebug() << mCenter(0) << "," << mCenter(1);
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
     //mCenteredHist = mRawHist;
 }
@@ -296,19 +326,66 @@ void Mpa2dHist::updateMap(){
            corners.push_back(tmp);
            CdbPixel *px = new CdbPixel(corners,mCenteredHist(y,x));
            mEnergyMap.push_back(px);
+           if (x==0 && y==0){
+               qDebug()<< "upper left:";
+               qDebug() << px->mCorners[1](0) <<" , " << px->mCorners[1](1);;
+           }
+           if (x==799 && y==0){
+               qDebug()<< "upper right:";
+               qDebug() << px->mCorners[2](0) <<" , " << px->mCorners[2](1);;
+           }
+           if (x==0 && y==799){
+               qDebug() << "lower left:";
+               qDebug() << px->mCorners[0](0) <<" , " << px->mCorners[0](1);
+           }
+           if (x==799 && y==799){
+               qDebug()<< "lower right:";
+               qDebug() << px->mCorners[3](0)<<" , " << px->mCorners[3](1);;
+           }
        }
     }
 
 }
 
+void Mpa2dHist::translateMap(double offset, double binWidth){
+    Eigen::Vector2d shift(1/std::sqrt(2),-1/std::sqrt(2));
+    shift = shift*offset*binWidth;
+    mCenter=mCenter-(shift.array()/mCal);
+    updateEnergyScale();
+    for (int n=0;n<mEnergyMap.size();n++) {
+        CdbPixel *px = mEnergyMap[n];
+        px->mCenter = px->mCenter+shift;
+        if (px->mCounts != 0) qDebug() << px->mCounts;
+        for(int i=0;i<4;i++){
+            px->mCorners[i] = px->mCorners[i]+shift;
+        }
+    }
+}
+
 MpaCdbHist* Mpa2dHist::projectCDBS(){
 
     //centerHist();
+
     if(!mMapInitialised){
         findCenter2d();
         updateMap();
         mMapInitialised = true;
+        int tmpDepth = mDepth;
+        double tmpRoiWidth = mRoiWidth;
+        double tmpRoiLength = mRoiLength;
+        double tmpEnergyBinWidth = mEnergyBinWidth;
+        mOffset = 0;
+        mCdbCounter--;
+        MpaCdbHist *test = projectCDBS(800,4000,200,4);
+        mOffset = test->autoCalibration(200);
+        setDepth(tmpDepth);
+        setRoi(tmpRoiWidth,tmpRoiLength);
+        setEnergyBinWidth(tmpEnergyBinWidth);
+        translateMap(mOffset*(-1),200);
+        //updateMap();
+
     }
+
     updateRoi();
     QString histName = mName + QString("_CDBS%1").arg(mCdbCounter);
     mCdbCounter++;
@@ -333,9 +410,10 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     }
     for (int i=0;i<mRoiGrid.size();i++){
         futures[i].waitForFinished(); //wait till computation has finished;
-        projection->setBinContent(i,mRoiGrid[i]->content());
+        projection->setBinContent(i,mRoiGrid[i]->content(),mRoiGrid[i]->incomplete());
     }
     projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
+    //projection->autoCalibration(mEnergyBinWidth);
     projection->setRoiInformation(mRoiLength,mRoiWidth,mEnergyBinWidth);
     projection->calculateFoldover();
     return projection;

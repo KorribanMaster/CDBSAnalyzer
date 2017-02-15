@@ -33,6 +33,7 @@ public:
     void findCenter2d();
     void updateRoi();
     void updateMap();
+    void translateMap(double offset,double binWidth);
     void updateEnergyScale();
     void centerHist();
 
@@ -58,6 +59,7 @@ public:
     double mRoiWidth;
     double mRoiLength;
     double mEnergyBinWidth;
+    double mOffset; //test
 
     int mDepth;
 

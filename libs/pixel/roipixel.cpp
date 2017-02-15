@@ -8,6 +8,10 @@ double RoiPixel::content(){
     return mContent;
 }
 
+double RoiPixel::incomplete(){
+    return mIncomplete;
+}
+
 void RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
     //std::vector<CdbPixel*> remaining;
     if (depth < mMaxDepth){
@@ -38,6 +42,7 @@ void RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
             }
             else if(px->inside(this)>0 && px->inside(this)<4){
                 mContent+=px->counts()/2;
+                mIncomplete+=px->counts()/2;
             }
         }
     }

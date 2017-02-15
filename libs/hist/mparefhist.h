@@ -23,8 +23,10 @@ public:
     double mRoiLength;
 
     Eigen::VectorXd mRefHist;
+    Eigen::VectorXd mRefHistError;
     Eigen::VectorXd mEnergyScale;
     Eigen::VectorXd mRefFoldoverHist;
+    Eigen::VectorXd mRefFoldoverHistError;
     Eigen::VectorXd mFoldoverEnergyScale;
 
 private:

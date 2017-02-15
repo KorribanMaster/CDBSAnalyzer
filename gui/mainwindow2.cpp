@@ -42,6 +42,7 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(ui->buttonPlotCdbs,SIGNAL(clicked(bool)),this,SLOT(plotCdbsButtonClicked()));
   connect(ui->buttonPlotRef,SIGNAL(clicked(bool)),this,SLOT(plotRefButtonClicked()));
   connect(ui->buttonPreview,SIGNAL(clicked(bool)),this,SLOT(previewButtonClicked()));
+  connect(ui->checkVariableRoi,SIGNAL(clicked(bool)),this, SLOT(checkVariableRoiClicked()));
 
   connect(ui->editImportName,SIGNAL(editingFinished()),this,SLOT(importNameEdited()));
   connect(ui->editFileName,SIGNAL(editingFinished()),this,SLOT(fileNameEdited()));
@@ -95,6 +96,10 @@ void MainWindow2::computeButtonClicked(){
     roiLength = ui->editRoiLength->text().toDouble();
     roiWidth = ui->editRoiWidth->text().toDouble();
     binWidth = ui->editBinWidth->text().toDouble();
+    if(ui->checkVariableRoi->checkState() == Qt::Checked){
+        binWidth = -1;
+        roiLength = -1;
+    }
     int depth = ui->comboSplitDepth->currentText().toInt();
     QStringList selected = mMapTable->getChecked();
     foreach (QString name,selected) {
@@ -175,4 +180,15 @@ void MainWindow2::previewButtonClicked(){
     mMapPlot->addHist(hist);
 
     return;
+}
+
+void MainWindow2::checkVariableRoiClicked(){
+    if(ui->checkVariableRoi->checkState()==Qt::Checked){
+        ui->editBinWidth->setDisabled(true);
+        ui->editRoiLength->setDisabled(true);
+    }
+    else if(ui->checkVariableRoi->checkState() == Qt::Unchecked){
+        ui->editBinWidth->setDisabled(false);
+        ui->editRoiLength->setDisabled(false);
+    }
 }

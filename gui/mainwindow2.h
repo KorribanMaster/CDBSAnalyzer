@@ -56,6 +56,7 @@ public slots:
     void addRef(QList<HistInfo> list);
     void plotCdbsButtonClicked();
     void plotRefButtonClicked();
+    void checkVariableRoiClicked();
 };
 
 #endif // MAINWINDOW2_H

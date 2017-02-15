@@ -32,6 +32,7 @@ public:
     void findCenter();
     void findCenter2d();
     void updateRoi();
+    void variableRoi();
     void updateMap();
     void translateMap(double offset,double binWidth);
     void updateEnergyScale();

@@ -266,6 +266,10 @@ void Mpa2dHist::centerHist(){
 }
 
 void Mpa2dHist::updateRoi(){
+    if(mEnergyBinWidth==-1){
+        variableRoi();
+        return;
+    }
     mRoiGrid.clear();
     //Roi Border points. See drawing in lab report.
     Eigen::Vector2d p1;
@@ -298,6 +302,71 @@ void Mpa2dHist::updateRoi(){
        corners[3] = c1+(i+1)*v3;
        RoiPixel *px = new RoiPixel(corners,mDepth);
        mRoiGrid.push_back(px);
+    }
+    return;
+
+}
+
+void Mpa2dHist::variableRoi(){
+    mRoiGrid.clear();
+    //Roi Border points. See drawing in lab report.
+    Eigen::Vector2d p1;
+    Eigen::Vector2d p2;
+    Eigen::Vector2d c1, c2,c3,c4;
+    std::vector<Eigen::Vector2d> corners(4);
+    Eigen::Vector2d v1(1/std::sqrt(2),-1/std::sqrt(2));
+    Eigen::Vector2d v2(1/std::sqrt(2),1/std::sqrt(2));
+    Eigen::Vector2d v3(1/std::sqrt(2),-1/std::sqrt(2));
+    QFile file("../settings/variableRoiTable.txt");
+
+    if(!file.open(QIODevice::ReadWrite)){
+        qDebug() << "Failed to open file";
+    }
+    QTextStream in(&file);
+    QVector<double> roiSegments;
+    while(!in.atEnd()){
+        QString line = in.readLine();
+        QStringList entries = line.split(' ');
+        roiSegments.push_back(entries[2].toDouble());
+    }
+    double roiLength = 0;
+    foreach (double seg, roiSegments) {
+        roiLength += seg;
+    }
+    mRoiLength = roiLength*1e3;
+    v1 = v1*mRoiLength;
+    v2 = v2*mRoiWidth;
+    p1 = mEnergyCenter.matrix()*1e3-v1;
+    p2 = mEnergyCenter.matrix()*1e3+v1;
+    corners[0] = p1-v2;
+    corners[1] = p1+v2;
+    corners[2] = p2+v2;
+    corners[3] = p2-v2;
+    mRoiBorder = new RoiPixel(corners,mDepth);
+    double currentOffset = 0;
+    c1 = corners[0];
+    c2 = corners[1];
+
+    for(int i=roiSegments.size()-1;i>=0;i--){
+       corners[0] = c1+currentOffset*v3;
+       corners[1] = c2+currentOffset*v3;
+       corners[2] = c2+currentOffset*v3+roiSegments[i]*v3*1e3;
+       corners[3] = c1+currentOffset*v3+roiSegments[i]*v3*1e3;
+       RoiPixel *px = new RoiPixel(corners,mDepth);
+       mRoiGrid.push_back(px);
+       currentOffset +=roiSegments[i]*1e3;
+    }
+    c2 = corners[2];
+    c1 = corners[3];
+    currentOffset=0;
+    for(int i=0;i<roiSegments.size();i++){
+        corners[0] = c1+currentOffset*v3;
+        corners[1] = c2+currentOffset*v3;
+        corners[2] = c2+currentOffset*v3+roiSegments[i]*v3*1e3;
+        corners[3] = c1+currentOffset*v3+roiSegments[i]*v3*1e3;
+        RoiPixel *px = new RoiPixel(corners,mDepth);
+        mRoiGrid.push_back(px);
+        currentOffset +=roiSegments[i]*1e3;
     }
 
 }
@@ -355,7 +424,7 @@ void Mpa2dHist::translateMap(double offset, double binWidth){
     for (int n=0;n<mEnergyMap.size();n++) {
         CdbPixel *px = mEnergyMap[n];
         px->mCenter = px->mCenter+shift;
-        if (px->mCounts != 0) qDebug() << px->mCounts;
+        //if (px->mCounts != 0) qDebug() << px->mCounts;
         for(int i=0;i<4;i++){
             px->mCorners[i] = px->mCorners[i]+shift;
         }
@@ -412,9 +481,27 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
         futures[i].waitForFinished(); //wait till computation has finished;
         projection->setBinContent(i,mRoiGrid[i]->content(),mRoiGrid[i]->incomplete());
     }
-    projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
+
     //projection->autoCalibration(mEnergyBinWidth);
     projection->setRoiInformation(mRoiLength,mRoiWidth,mEnergyBinWidth);
+    //calculate energy scale
+    Eigen::VectorXd energyScale(mRoiGrid.size());
+    Eigen::VectorXd foldoverEnergyScale(mRoiGrid.size()/2);
+    for(int i=0;i<mRoiGrid.size();i++){
+        double sgn;
+        if(i<=mRoiGrid.size()/2) {
+            sgn= -1;
+        }
+        else {
+            sgn=1;
+            foldoverEnergyScale(i-mRoiGrid.size()/2-1) = (mEnergyCenter.matrix()*1e3-mRoiGrid[i]->mCenter).norm()*sgn+511e3;
+        }
+        energyScale(i) = (mEnergyCenter.matrix()*1e3-mRoiGrid[i]->mCenter).norm()*sgn+511e3;
+
+    }
+    //projection->setCalibration(mEnergyBinWidth,511e3,mRoiGrid.size()/2);
+    projection->mEnergyScale = energyScale;
+    projection->mEnergyScaleFoldover = foldoverEnergyScale;
     projection->calculateFoldover();
     return projection;
 }

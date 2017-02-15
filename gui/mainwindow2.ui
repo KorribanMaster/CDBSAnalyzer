@@ -66,7 +66,7 @@
           <item row="0" column="3">
            <widget class="QPushButton" name="buttonImport">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="text">
              <string>Load</string>
@@ -230,6 +230,23 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="2">
+             <widget class="QCheckBox" name="checkVariableRoi">
+              <property name="text">
+               <string>Variable Roi</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QCheckBox" name="checkBackground">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Background Substraction</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -343,6 +360,16 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkJoinData">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Join Data</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QComboBox" name="comboRef"/>

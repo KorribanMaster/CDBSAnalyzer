@@ -378,3 +378,11 @@ void HistManager::saveHists(QString saveFolderName){
 
 
 }
+
+bool HistManager::exportToDb(MpaCdbHist hist){
+
+}
+
+MpaCdbHist* HistManager::importFromDb(QString date, double roiWidth, double roiLength, double binWidth){
+
+}

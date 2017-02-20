@@ -489,12 +489,12 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     Eigen::VectorXd foldoverEnergyScale(mRoiGrid.size()/2);
     for(int i=0;i<mRoiGrid.size();i++){
         double sgn;
-        if(i<=mRoiGrid.size()/2) {
+        if(i<mRoiGrid.size()/2) {
             sgn= -1;
         }
         else {
             sgn=1;
-            foldoverEnergyScale(i-mRoiGrid.size()/2-1) = (mEnergyCenter.matrix()*1e3-mRoiGrid[i]->mCenter).norm()*sgn+511e3;
+            foldoverEnergyScale(i-mRoiGrid.size()/2) = (mEnergyCenter.matrix()*1e3-mRoiGrid[i]->mCenter).norm()*sgn+511e3;
         }
         energyScale(i) = (mEnergyCenter.matrix()*1e3-mRoiGrid[i]->mCenter).norm()*sgn+511e3;
 

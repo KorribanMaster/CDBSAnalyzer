@@ -321,6 +321,12 @@ void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWi
 }
 
 void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes){
+    QVector<int> tmp = histIndexes;
+    tmp.append(referenceHistIndex);
+    if(!checkRefHistCompatability(tmp)){
+        qDebug() << "Incompatible Histogramms";
+        return;
+    }
     for(int i=0; i< histIndexes.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(referenceHistIndex),getCdbHist(histIndexes[i]));
         mRefHists.append(hist);
@@ -331,6 +337,12 @@ void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes
 }
 
 void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames){
+    QStringList tmp = histNames;
+    tmp.append(referenceHistName);
+    if(!checkRefHistCompatability(tmp)){
+        qDebug() << "Incompatible Histogramms";
+        return;
+    }
     for(int i=0; i< histNames.size();i++){
         MpaRefHist *hist = new MpaRefHist(getCdbHist(histNames[i]),getCdbHist(referenceHistName));
         mRefHists.append(hist);
@@ -351,30 +363,182 @@ void HistManager::saveHists(QString saveFolderName){
         }
         QTextStream out(&file);
         out << "#" << hist->mName << "\n";
-        //out << "# Projection Histogram\n";
+        out << "# Projection Histogram\n";
         out << "#bin width = " << hist->mEnergyBinWidth << "\n#roi width = "<< hist->mRoiWidth << "\n#roi length = "<< hist->mRoiLength <<"\n#counts = "<< hist->mNorm;
-        out << "#Energy; Counts; Norm\n";
-        for(int i=0;i<hist->mProjectionHist.size();i++){
-            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) << "; " << hist->mNormHist(i) << "\n";
+        out << "#Energy; Projection;Projection Error; Norm; Norm Error; Foldover; Foldover Error; Norm Foldover; Norm Foldover Error\n";
+        for(int i=0;i<hist->mSize/2;i++){
+            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) << "; " << hist->mProjectionHistError(i) << "; " << hist->mNormHist(i) << "; " << hist->mNormHistError(i) << "; ; ; ; \n";
+        }
+        for(int i=hist->mSize/2;i<hist->mSize;i++){
+            out << hist->mEnergyScale(i) << "; " << hist->mProjectionHist(i) << "; " << hist->mProjectionHistError(i) << "; " << hist->mNormHist(i) << "; " << hist->mNormHistError(i) << "; " << hist->mFoldoverHist(i) << "; " << hist->mFoldoverHistError(i) << "; " << hist->mNormFoldoverHist(i) << "; " << hist->mNormFoldoverHistError(i)<< "\n";
         }
         file.close();
-        QString fileName2 = dirName +"/"+hist->mName+"_projection.txt";
-        QFile file2(fileName2);
-        if(!file2.open(QIODevice::ReadWrite)){
-            qDebug() << "Failed to open file";
-        }
-        QTextStream out2(&file2);
-        out2 << "#" << hist->mName << "\n";
-        out2 << "# Foldover Histogram\n";
-        out2 << "#bin width = " << hist->mEnergyBinWidth << "\n#roi width = "<< hist->mRoiWidth << "\n#roi length = "<< hist->mRoiLength <<"\n#counts = "<< hist->mNorm;
-        out2 << "#Energy; Counts; Norm\n";
-        for(int i=0;i<hist->mFoldoverHist.size();i++){
-            out2 << hist->mEnergyScale(i+hist->mSize/2) << "; " << hist->mFoldoverHist(i) << "; " << hist->mNormFoldoverHist(i) <<"\n";
-        }
-
-        file2.close();
-
     }
 
 
+}
+
+void HistManager::saveRefs(QStringList histNames, QString saveFileName){
+    QVector<MpaRefHist*> hists;
+    bool ok = checkRefHistCompatability(histNames);
+    if(!ok){
+        qDebug() << "References incompatible: Canceling Saving";
+        emit error("References incompatible: Canceling Saving");
+    }
+    foreach (QString histName, histNames) {
+        MpaRefHist *hist = getRefHist(histName);
+        hists.push_back(hist);
+    }
+    QFile file(saveFileName);
+    if(!file.open(QIODevice::ReadWrite)){
+        qDebug() << "Failed to open file";
+    }
+    QTextStream out(&file);
+    out << "#Reference Hists\n";
+    out << "#bin width = " << hists[0]->mEnergyBinWidth << "\n#roi width = "<< hists[0]->mRoiWidth << "\n#roi length = "<< hists[0]->mRoiLength <<"\n";
+    out << "#foldover";
+    out << "#energyscale; ";
+    foreach (MpaRefHist *hist, hists) {
+        out << hist->mName << "; " << hist->mName << "Error; ";
+    }
+    out <<"\n";
+    for(int i=0; i<hists[0]->mSize/2;i++){
+        out << hists[0]->mFoldoverEnergyScale(i) << "; ";
+        foreach (MpaRefHist *hist, hists) {
+            out << hist->mRefFoldoverHist(i) << "; " << hist->mRefFoldoverHistError(i) << "; ";
+        }
+        out <<"\n";
+    }
+    out << "#non foldover";
+    out << "#energyscale; ";
+    foreach (MpaRefHist *hist, hists) {
+        out << hist->mName << "; " << hist->mName << "Error; ";
+    }
+    out <<"\n";
+    for(int i=0; i<hists[0]->mSize;i++){
+        out << hists[0]->mEnergyScale(i) << "; ";
+        foreach (MpaRefHist *hist, hists) {
+            out << hist->mRefHist(i) << "; " << hist->mRefHistError(i) << "; ";
+        }
+        out <<"\n";
+    }
+    file.close();
+
+}
+
+bool HistManager::checkCdbHistCompatability(QVector<int> histIndexes){
+    QVector<MpaCdbHist*> hists;
+    if(histIndexes.size()==0) return false;
+    foreach (int histIndex, histIndexes) {
+        MpaCdbHist *hist = getCdbHist(histIndex);
+        hists.push_back(hist);
+    }
+    double roiWidth,roiLength,binWidth,size;
+    roiWidth = hists[0]->mRoiWidth;
+    roiLength = hists[0]->mRoiLength;
+    binWidth = hists[0]->mEnergyBinWidth;
+    size = hists[0]->mSize;
+    bool result = true;
+    foreach (MpaCdbHist *hist, hists) {
+        if(roiWidth!=hist->mRoiWidth) result = false;
+        if(roiLength!=hist->mRoiLength) result = false;
+        if(binWidth!=hist->mEnergyBinWidth) result = false;
+        if(size!=hist->mSize) result = false;
+    }
+    return result;
+
+}
+
+bool HistManager::checkCdbHistCompatability(QStringList histNames){
+    QVector<MpaCdbHist*> hists;
+    if(histNames.size()==0) return false;
+    foreach (QString histName, histNames) {
+        MpaCdbHist *hist = getCdbHist(histName);
+        hists.push_back(hist);
+    }
+    double roiWidth,roiLength,binWidth,size;
+    roiWidth = hists[0]->mRoiWidth;
+    roiLength = hists[0]->mRoiLength;
+    binWidth = hists[0]->mEnergyBinWidth;
+    size = hists[0]->mSize;
+    bool result = true;
+    foreach (MpaCdbHist *hist, hists) {
+        if(roiWidth!=hist->mRoiWidth) result = false;
+        if(roiLength!=hist->mRoiLength) result = false;
+        if(binWidth!=hist->mEnergyBinWidth) result = false;
+        if(size!=hist->mSize) result = false;
+    }
+    return result;
+}
+
+bool HistManager::checkRefHistCompatability(QVector<int> histIndexes){
+    QVector<MpaRefHist*> hists;
+    if(histIndexes.size()==0) return false;
+    foreach (int histIndex, histIndexes) {
+        MpaRefHist *hist = getRefHist(histIndex);
+        hists.push_back(hist);
+    }
+    double roiWidth,roiLength,binWidth,size;
+    roiWidth = hists[0]->mRoiWidth;
+    roiLength = hists[0]->mRoiLength;
+    binWidth = hists[0]->mEnergyBinWidth;
+    size = hists[0]->mSize;
+    bool result = true;
+    foreach (MpaRefHist *hist, hists) {
+        if(roiWidth!=hist->mRoiWidth) result = false;
+        if(roiLength!=hist->mRoiLength) result = false;
+        if(binWidth!=hist->mEnergyBinWidth) result = false;
+        if(size!=hist->mSize) result = false;
+    }
+    return result;
+
+}
+bool HistManager::checkRefHistCompatability(QStringList histNames){
+    QVector<MpaRefHist*> hists;
+    if(histNames.size()==0) return false;
+    foreach (QString histName, histNames) {
+        MpaRefHist *hist = getRefHist(histName);
+        hists.push_back(hist);
+    }
+    double roiWidth,roiLength,binWidth,size;
+    roiWidth = hists[0]->mRoiWidth;
+    roiLength = hists[0]->mRoiLength;
+    binWidth = hists[0]->mEnergyBinWidth;
+    size = hists[0]->mSize;
+    bool result = true;
+    foreach (MpaRefHist *hist, hists) {
+        if(roiWidth!=hist->mRoiWidth) result = false;
+        if(roiLength!=hist->mRoiLength) result = false;
+        if(binWidth!=hist->mEnergyBinWidth) result = false;
+        if(size!=hist->mSize) result = false;
+    }
+    return result;
+}
+
+void HistManager::joinCDBS(QStringList histNames){
+    if(!checkCdbHistCompatability(histNames)){
+        qDebug() << "Can't join hists";
+        return;
+    }
+    QVector<MpaCdbHist*> hists;
+    foreach (QString histName, histNames) {
+        MpaCdbHist *hist = getCdbHist(histName);
+        hists.push_back(hist);
+    }
+    QString tmp = hists[0]->mName;
+    MpaCdbHist *sum = new MpaCdbHist(tmp.replace("_CDAT","_SUM"));
+    sum->setSize(hists[0]->mSize);
+    sum->setRoiInformation(hists[0]->mRoiWidth,hists[0]->mRoiLength,hists[0]->mEnergyBinWidth);
+    sum->mEnergyScale = hists[0]->mEnergyScale;
+    sum->mEnergyScaleFoldover = hists[0]->mEnergyScaleFoldover;
+    sum->mProjectionHist.setZero(sum->mSize);
+    for(int i=0;i<hists.size();i++){
+        sum->mProjectionHist += hists[i]->mProjectionHist;
+    }
+    sum->mProjectionHistError = sum->mProjectionHist.array().sqrt().matrix();
+    sum->calculateFoldover();
+    mCdbHists.append(sum);
+    HistInfo info(sum,mCdbHists.size()-1);
+    mCdbHistInfos.append(info);
+    emit updatedCdbHistList(mCdbHistInfos);
 }

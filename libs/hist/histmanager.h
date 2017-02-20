@@ -31,6 +31,11 @@ private:
     QSettings *mSettings;
     QString mSettingsFileName;
 
+    bool checkRefHistCompatability(QStringList histNames);
+    bool checkRefHistCompatability(QVector<int> histIndexes);
+    bool checkCdbHistCompatability(QStringList histNames);
+    bool checkCdbHistCompatability(QVector<int> histIndexes);
+
 public:
 
     Mpa1dHist* get1dHist(int index);
@@ -54,6 +59,7 @@ public:
     int numRefHists();
 public slots:
     void saveHists(QString saveFolderName);
+    void saveRefs(QStringList histNames,QString saveFileName);
 
     void loadHist(QString fileName,QString name);
     void loadSettings(QString settingsFileName);
@@ -65,6 +71,8 @@ public slots:
     void referenceCDBS(QString referenceHistName,QStringList histNames);
     void referenceCDBS(int referenceHistIndex,QVector<int> histIndexes);
 
+    void joinCDBS(QStringList histNames);
+
 signals:
     void projectionReady();
     void referenceReady();
@@ -73,6 +81,8 @@ signals:
     void updated2dHistList(QList<HistInfo> list);
     void updatedCdbHistList(QList<HistInfo> list);
     void updatedRefHistList(QList<HistInfo> list);
+
+    void error(QString errorMessage);
 };
 
 #endif // HISTMANAGER_H

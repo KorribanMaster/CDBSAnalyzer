@@ -29,7 +29,7 @@ MpaRefHist::MpaRefHist(MpaCdbHist *hist, MpaCdbHist *norm)
     for(int i=0; i< mSize/2;i++){
         mRefFoldoverHist(i) = hist->mNormFoldoverHist(i)/norm->mNormFoldoverHist(i);
         mRefFoldoverHistError(i) = std::sqrt(std::pow(hist->mNormFoldoverHistError(i)/hist->mNormFoldoverHist(i),2)+std::pow(norm->mNormFoldoverHistError(i)/norm->mNormFoldoverHist(i),2))*mRefFoldoverHist(i);
-        mFoldoverEnergyScale(i) = 511e3+i*mEnergyBinWidth;
+        mFoldoverEnergyScale(i) = hist->mEnergyScaleFoldover(i);
     }
 }
 

@@ -38,25 +38,29 @@ private:
 
 signals:
     void saveHists(QString saveFolderName);
+    void saveRefs(QStringList histNames,QString saveFileName);
     void loadHist(QString fileName,QString name);
     void loadSettings(QString fileName);
     void referenceHist(QString refName,QStringList histNames);
     void computeAll(double roiWidth,double roiLength,double binWidth,int depth);
     void compute(QString name,double roiWidth,double roiLength,double binWidth,int depth);
+    void join(QStringList histNames);
 
 public slots:
-    void saveClicked();
+    void saveSessionClicked();
     void loadButtonClicked();
     void loadToolClicked();
     void computeButtonClicked();
     void referenceButtonClicked();
     void previewButtonClicked();
+    void saveRefButtonClicked();
     void importNameEdited();
     void fileNameEdited();
     void addRef(QList<HistInfo> list);
     void plotCdbsButtonClicked();
     void plotRefButtonClicked();
     void checkVariableRoiClicked();
+    void joinButtonClicked();
 };
 
 #endif // MAINWINDOW2_H

@@ -31,6 +31,8 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(this,SIGNAL(loadSettings(QString)),mManager,SLOT(loadSettings(QString)));
   connect(this,SIGNAL(saveHists(QString)),mManager,SLOT(saveHists(QString)));
   connect(this,SIGNAL(compute(QString,double,double,double,int)),mManager,SLOT(projectCDBS(QString,double,double,double,int)));
+  connect(this,SIGNAL(saveRefs(QStringList,QString)),mManager, SLOT(saveRefs(QStringList,QString)));
+  connect(this,SIGNAL(join(QStringList)),mManager,SLOT(joinCDBS(QStringList)));
 
 
   emit loadSettings("../settings/CDBSUpgrade.ini");
@@ -38,11 +40,13 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(ui->buttonImport,SIGNAL(clicked(bool)),this,SLOT(loadButtonClicked()));
   connect(ui->buttonCompute,SIGNAL(clicked(bool)),this,SLOT(computeButtonClicked()));
   connect(ui->buttonRef,SIGNAL(clicked(bool)),this,SLOT(referenceButtonClicked()));
-  connect(ui->actionSave_Session,SIGNAL(triggered(bool)),this,SLOT(saveClicked()));
+  connect(ui->actionSave_Session,SIGNAL(triggered(bool)),this,SLOT(saveSessionClicked()));
   connect(ui->buttonPlotCdbs,SIGNAL(clicked(bool)),this,SLOT(plotCdbsButtonClicked()));
   connect(ui->buttonPlotRef,SIGNAL(clicked(bool)),this,SLOT(plotRefButtonClicked()));
   connect(ui->buttonPreview,SIGNAL(clicked(bool)),this,SLOT(previewButtonClicked()));
   connect(ui->checkVariableRoi,SIGNAL(clicked(bool)),this, SLOT(checkVariableRoiClicked()));
+  connect(ui->buttonSave,SIGNAL(clicked(bool)),this,SLOT(saveRefButtonClicked()));
+  connect(ui->buttonJoin,SIGNAL(clicked(bool)),this,SLOT(joinButtonClicked()));
 
   connect(ui->editImportName,SIGNAL(editingFinished()),this,SLOT(importNameEdited()));
   connect(ui->editFileName,SIGNAL(editingFinished()),this,SLOT(fileNameEdited()));
@@ -74,7 +78,7 @@ MainWindow2::~MainWindow2(){
     mThread.wait();
 }
 
-void MainWindow2::saveClicked(){
+void MainWindow2::saveSessionClicked(){
     QString saveFolderName = QFileDialog::getExistingDirectory(this,"Save Folder","..data");
     emit saveHists(saveFolderName);
 }
@@ -182,6 +186,20 @@ void MainWindow2::previewButtonClicked(){
     return;
 }
 
+void MainWindow2::saveRefButtonClicked(){
+    QStringList list = mRefTable->getChecked();
+    if (list.isEmpty()){
+        qDebug() << "Empty list";
+        return;
+    }
+    QString fileName = QFileDialog::getSaveFileName(this,"Export References","../data");
+    if(!fileName.endsWith(".txt")){
+        fileName.append(".txt");
+    }
+    emit saveRefs(list,fileName);
+
+}
+
 void MainWindow2::checkVariableRoiClicked(){
     if(ui->checkVariableRoi->checkState()==Qt::Checked){
         ui->editBinWidth->setDisabled(true);
@@ -191,4 +209,9 @@ void MainWindow2::checkVariableRoiClicked(){
         ui->editBinWidth->setDisabled(false);
         ui->editRoiLength->setDisabled(false);
     }
+}
+
+void MainWindow2::joinButtonClicked(){
+    QStringList list = mCdbsTable->getChecked();
+    emit join(list);
 }

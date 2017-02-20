@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtCore>
 #include <QSettings>
+#include <QtSql>
 
 #include "mpa1dhist.h"
 #include "mpa2dhist.h"
@@ -30,6 +31,7 @@ private:
     QList<HistInfo> mRefHistInfos;
     QSettings *mSettings;
     QString mSettingsFileName;
+    QSqlDatabase mDb;
 
     bool checkRefHistCompatability(QStringList histNames);
     bool checkRefHistCompatability(QVector<int> histIndexes);
@@ -38,6 +40,8 @@ private:
 
 public:
 
+    bool exportToDb(MpaCdbHist hist);
+    MpaCdbHist* importFromDb(QString date,double roiWidth,double roiLength, double binWidth);
     Mpa1dHist* get1dHist(int index);
     Mpa1dHist* get1dHist(QString name);
     QStringList get1dHistList();
@@ -57,6 +61,7 @@ public:
     MpaRefHist* getRefHist(QString name);
     QStringList getRefHistList();
     int numRefHists();
+
 public slots:
     void saveHists(QString saveFolderName);
     void saveRefs(QStringList histNames,QString saveFileName);
@@ -71,7 +76,9 @@ public slots:
     void referenceCDBS(QString referenceHistName,QStringList histNames);
     void referenceCDBS(int referenceHistIndex,QVector<int> histIndexes);
 
+
     void joinCDBS(QStringList histNames);
+
 
 signals:
     void projectionReady();

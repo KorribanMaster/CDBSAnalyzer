@@ -14,9 +14,9 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-FIND_PACKAGE(Qt5 COMPONENTS Core Network Concurrent DBus Widgets Gui PrintSupport REQUIRED)
-LINK_LIBRARIES(Qt5::Core Qt5::Network Qt5::DBus Qt5::Widgets Qt5::Gui Qt5::PrintSupport)
-INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5Concurrent_INCLUDE_DIRS} ${Qt5PrintSupport_INCLUDE_DIRS})
+FIND_PACKAGE(Qt5 COMPONENTS Core Network Concurrent DBus Widgets Gui PrintSupport Sql REQUIRED)
+LINK_LIBRARIES(Qt5::Core Qt5::Network Qt5::DBus Qt5::Widgets Qt5::Gui Qt5::PrintSupport Qt5::Sql)
+INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5Concurrent_INCLUDE_DIRS} ${Qt5PrintSupport_INCLUDE_DIRS} ${Qt5Sql_INCLUDE_DIRS})
 
 
 find_package(Eigen3 REQUIRED)
@@ -106,5 +106,8 @@ target_link_libraries(plottest plotwindow)
 
 add_executable(fittest test/fittest.cpp)
 target_link_libraries(fittest qcustomplot)
+
+add_executable(dbtest test/dbtest.cpp)
+target_link_libraries(dbtest hist)
 
 install(TARGETS pixeltest maptest RUNTIME DESTINATION bin)

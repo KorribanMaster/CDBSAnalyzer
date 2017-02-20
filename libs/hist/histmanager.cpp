@@ -542,3 +542,11 @@ void HistManager::joinCDBS(QStringList histNames){
     mCdbHistInfos.append(info);
     emit updatedCdbHistList(mCdbHistInfos);
 }
+
+bool HistManager::exportToDb(MpaCdbHist hist){
+
+}
+
+MpaCdbHist* HistManager::importFromDb(QString date, double roiWidth, double roiLength, double binWidth){
+
+}

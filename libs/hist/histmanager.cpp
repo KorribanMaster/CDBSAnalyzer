@@ -379,7 +379,53 @@ void HistManager::saveHists(QString saveFolderName){
 
 }
 
-bool HistManager::exportToDb(MpaCdbHist hist){
+bool HistManager::exportToDb(MpaCdbHist *hist){
+    QByteArray energyScaleData,projectionData,projectionErrorData,normData,normErrorData;
+    QDataStream out1(&energyScaleData,QIODevice::ReadWrite);
+    QDataStream out2(&projectionData,QIODevice::ReadWrite);
+    QDataStream out3(&projectionErrorData,QIODevice::ReadWrite);
+    QDataStream out4(&normData,QIODevice::ReadWrite);
+    QDataStream out5(&normErrorData,QIODevice::ReadWrite);
+    for(int i=0;i<hist->mSize;i++){
+        out1 << hist->mEnergyScale(i);
+        out2 << hist->mProjectionHist(i);
+        out3 << hist->mProjectionHistError(i);
+        out4 << hist->mNormHist(i);
+        out5 << hist->mNormHistError(i);
+    }
+    QByteArray energyScaleFoldoverData,projectionFoldoverData,projectionFoldoverErrorData,normFoldoverData,normFoldoverErrorData;
+    QDataStream out6(&energyScaleFoldoverData,QIODevice::ReadWrite);
+    QDataStream out7(&projectionFoldoverData,QIODevice::ReadWrite);
+    QDataStream out8(&projectionFoldoverErrorData,QIODevice::ReadWrite);
+    QDataStream out9(&normFoldoverData,QIODevice::ReadWrite);
+    QDataStream out10(&normFoldoverErrorData,QIODevice::ReadWrite);
+    for(int i=0;i<hist->mSize/2;i++){
+        out1 << hist->mEnergyScaleFoldover(i);
+        out2 << hist->mFoldoverHist(i);
+        out3 << hist->mFoldoverHistError(i);
+        out4 << hist->mNormFoldoverHist(i);
+        out5 << hist->mNormFoldoverHistError(i);
+    }
+    query.prepare("INSERT INTO measurements (recordDate, name, size, roiWidth, roiLength, binWidth, counts,baseUUID, energyScaleData, projectionData, projectionErrorData, normData, normErrorData,foldoverData, foldoverErrorData, normFoldoverData, normErrorData) VALUES (:recordDate, :name, :size, :size, :roiLength,  :binWidth, :counts, :baseUUID, :energyScaleData, :projectionData, :projectionErrorData, :normData, :normErrorData, :foldoverData, :foldoverErrorData, :normFoldoverData, :normErrorData)");
+    query.bindValue(":recordDate",QString("1992-03-03_00-00-00"));
+    query.bindValue(":name", hist->mName);
+    query.bindValue(":size",hist->mSize);
+    query.bindValue(":roiWidth",hist->mRoiWidth);
+    query.bindValue(":roiLength",hist->mRoiLength);
+    query.bindValue(":binWidth",hist->mEnergyBinWidth);
+    query.bindValue(":counts",hist->mNorm);
+    query.bindValue(":energyScaleData",energyScaleData);
+    query.bindValue(":projectionData",projectionData);
+    query.bindValue(":projectionErrorData",projectionErrorData);
+    query.bindValue(":normData", normData);
+    query.bindValue(":normErrorData",normErrorData);
+    query.bindValue(":foldoverData",projectionFoldoverData);
+    query.bindValue(":foldoverErrorData",projectionFoldoverErrorData);
+    query.bindValue(":normFoldoverData", normFoldoverData);
+    query.bindValue(":normFoldoverErrorData",normFoldoverErrorData);
+    query.exec();
+    qDebug() << query.lastError();
+
 
 }
 

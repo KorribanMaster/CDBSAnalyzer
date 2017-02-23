@@ -323,7 +323,7 @@ void HistManager::projectAllCDBS(double roiWidth, double roiLength, double binWi
 void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes){
     QVector<int> tmp = histIndexes;
     tmp.append(referenceHistIndex);
-    if(!checkRefHistCompatability(tmp)){
+    if(!checkCdbHistCompatability(tmp)){
         qDebug() << "Incompatible Histogramms";
         return;
     }
@@ -339,7 +339,7 @@ void HistManager::referenceCDBS(int referenceHistIndex, QVector<int> histIndexes
 void HistManager::referenceCDBS(QString referenceHistName, QStringList histNames){
     QStringList tmp = histNames;
     tmp.append(referenceHistName);
-    if(!checkRefHistCompatability(tmp)){
+    if(!checkCdbHistCompatability(tmp)){
         qDebug() << "Incompatible Histogramms";
         return;
     }

@@ -1,6 +1,7 @@
 #include "histmanager.h"
 
 #include <QtConcurrent>
+#include <QUuid>
 
 HistManager::HistManager(QObject *parent) : QObject(parent)
 {
@@ -138,9 +139,7 @@ void HistManager::loadSettings(QString settingsFileName){
        mSettingsFileName = settingsFileName;
        mSettings = new QSettings(mSettingsFileName,QSettings::IniFormat);
        qDebug() << mSettings->allKeys();
-       qDebug() << mSettings->value("Calibration/Center0").toString();
-       mSettings->setValue("Calibration/Center0","30,30");
-       qDebug() << mSettings->value("Calibration/Center0").toString();
+       openDb();
 }
 
 Mpa1dHist* HistManager::get1dHist(int index){
@@ -297,6 +296,7 @@ void HistManager::projectCDBS(QString histName, double roiWidth, double roiLengt
     mCdbHists.append(projection);
     HistInfo info(projection,mCdbHists.size()-1);
     mCdbHistInfos.append(info);
+    exportToDb(projection);
     emit updatedCdbHistList(mCdbHistInfos);
 
 }
@@ -543,10 +543,96 @@ void HistManager::joinCDBS(QStringList histNames){
     emit updatedCdbHistList(mCdbHistInfos);
 }
 
-bool HistManager::exportToDb(MpaCdbHist hist){
+bool HistManager::exportToDb(MpaCdbHist *hist){
+    QByteArray energyScaleData,projectionData,projectionErrorData,normData,normErrorData;
+    QDataStream out1(&energyScaleData,QIODevice::ReadWrite);
+    QDataStream out2(&projectionData,QIODevice::ReadWrite);
+    QDataStream out3(&projectionErrorData,QIODevice::ReadWrite);
+    QDataStream out4(&normData,QIODevice::ReadWrite);
+    QDataStream out5(&normErrorData,QIODevice::ReadWrite);
+    for(int i=0;i<hist->mSize;i++){
+        out1 << hist->mEnergyScale(i);
+        out2 << hist->mProjectionHist(i);
+        out3 << hist->mProjectionHistError(i);
+        out4 << hist->mNormHist(i);
+        out5 << hist->mNormHistError(i);
+    }
+    QByteArray energyScaleFoldoverData,projectionFoldoverData,projectionFoldoverErrorData,normFoldoverData,normFoldoverErrorData;
+    QDataStream out6(&energyScaleFoldoverData,QIODevice::ReadWrite);
+    QDataStream out7(&projectionFoldoverData,QIODevice::ReadWrite);
+    QDataStream out8(&projectionFoldoverErrorData,QIODevice::ReadWrite);
+    QDataStream out9(&normFoldoverData,QIODevice::ReadWrite);
+    QDataStream out10(&normFoldoverErrorData,QIODevice::ReadWrite);
+    for(int i=0;i<hist->mSize/2;i++){
+        out6 << hist->mEnergyScaleFoldover(i);
+        out7 << hist->mFoldoverHist(i);
+        out8 << hist->mFoldoverHistError(i);
+        out9 << hist->mNormFoldoverHist(i);
+        out10 << hist->mNormFoldoverHistError(i);
+    }
+    QSqlQuery query(mDb);
+    query.prepare("INSERT INTO measurements (recordDate, name, size, roiWidth, roiLength, binWidth, counts,"
+                  " energyScaleData, projectionData, projectionErrorData, normData, normErrorData,foldoverData, foldoverErrorData, normFoldoverData, normFoldoverErrorData)"
+                  " VALUES (:recordDate, :name, :size, :roiWidth, :roiLength,  :binWidth, :counts, :energyScaleData, :projectionData, :projectionErrorData,"
+                  " :normData, :normErrorData, :foldoverData, :foldoverErrorData, :normFoldoverData, :normFoldoverErrorData)");
+    query.bindValue(":recordDate",QDateTime::currentDateTime());
+    query.bindValue(":name", hist->mName);
+    query.bindValue(":size",hist->mSize);
+    query.bindValue(":roiWidth",hist->mRoiWidth);
+    query.bindValue(":roiLength",hist->mRoiLength);
+    query.bindValue(":binWidth",hist->mEnergyBinWidth);
+    query.bindValue(":counts",hist->mNorm);
+    query.bindValue(":energyScaleData",energyScaleData);
+    query.bindValue(":projectionData",projectionData);
+    query.bindValue(":projectionErrorData",projectionErrorData);
+    query.bindValue(":normData", normData);
+    query.bindValue(":normErrorData",normErrorData);
+    query.bindValue(":foldoverData",projectionFoldoverData);
+    query.bindValue(":foldoverErrorData",projectionFoldoverErrorData);
+    query.bindValue(":normFoldoverData", normFoldoverData);
+    query.bindValue(":normFoldoverErrorData",normFoldoverErrorData);
+    query.exec();
+    qDebug() << query.lastError();
+
 
 }
 
 MpaCdbHist* HistManager::importFromDb(QString date, double roiWidth, double roiLength, double binWidth){
 
+}
+
+bool HistManager::openDb(QString path){
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    if(path.isEmpty()){
+        path ="/home/eicke/git/CDBSAnalyzer/database/results.db";
+    }
+    db.setDatabaseName(path);
+    if (!db.open())
+    {
+        qDebug() << "Could not open database file:";
+        qDebug() << db.lastError();
+        return -1;
+    }
+    qDebug() << "Opened Database";
+    QSqlQuery query(db);
+    query.exec("CREATE TABLE IF NOT EXISTS measurements ("
+               "recordDate TIMESTAMP NOT NULL, "
+               "name TEXT, "
+               "size INT NOT NULL, "
+               "roiWidth REAL NOT NULL, "
+               "roiLength REAL NOT NULL, "
+               "binWidth REAL NOT NULL, "
+               "counts INT, "
+               "baseUUID VARCHAR(38), "
+               "energyScaleData VARBINARY, "
+               "projectionData VARBINARY, "
+               "projectionErrorData VARBINARY, "
+               "normData VARBINARY, "
+               "normErrorData VARBINARY, "
+               "foldoverData VARBINARY, "
+               "foldoverErrorData VARBINARY, "
+               "normFoldoverData VARBINARY, "
+               "normFoldoverErrorData VARBINARY,"
+               "CONSTRAINT id PRIMARY KEY(recordDate, roiWidth, roiLength, binWidth));");
+    qDebug() << query.lastError();
 }

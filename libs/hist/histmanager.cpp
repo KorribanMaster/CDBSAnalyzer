@@ -1,6 +1,7 @@
 #include "histmanager.h"
 
 #include <QtConcurrent>
+#include <QUuid>
 
 HistManager::HistManager(QObject *parent) : QObject(parent)
 {
@@ -138,9 +139,7 @@ void HistManager::loadSettings(QString settingsFileName){
        mSettingsFileName = settingsFileName;
        mSettings = new QSettings(mSettingsFileName,QSettings::IniFormat);
        qDebug() << mSettings->allKeys();
-       qDebug() << mSettings->value("Calibration/Center0").toString();
-       mSettings->setValue("Calibration/Center0","30,30");
-       qDebug() << mSettings->value("Calibration/Center0").toString();
+       openDb();
 }
 
 Mpa1dHist* HistManager::get1dHist(int index){
@@ -297,6 +296,7 @@ void HistManager::projectCDBS(QString histName, double roiWidth, double roiLengt
     mCdbHists.append(projection);
     HistInfo info(projection,mCdbHists.size()-1);
     mCdbHistInfos.append(info);
+    exportToDb(projection);
     emit updatedCdbHistList(mCdbHistInfos);
 
 }
@@ -564,14 +564,18 @@ bool HistManager::exportToDb(MpaCdbHist *hist){
     QDataStream out9(&normFoldoverData,QIODevice::ReadWrite);
     QDataStream out10(&normFoldoverErrorData,QIODevice::ReadWrite);
     for(int i=0;i<hist->mSize/2;i++){
-        out1 << hist->mEnergyScaleFoldover(i);
-        out2 << hist->mFoldoverHist(i);
-        out3 << hist->mFoldoverHistError(i);
-        out4 << hist->mNormFoldoverHist(i);
-        out5 << hist->mNormFoldoverHistError(i);
+        out6 << hist->mEnergyScaleFoldover(i);
+        out7 << hist->mFoldoverHist(i);
+        out8 << hist->mFoldoverHistError(i);
+        out9 << hist->mNormFoldoverHist(i);
+        out10 << hist->mNormFoldoverHistError(i);
     }
-    query.prepare("INSERT INTO measurements (recordDate, name, size, roiWidth, roiLength, binWidth, counts,baseUUID, energyScaleData, projectionData, projectionErrorData, normData, normErrorData,foldoverData, foldoverErrorData, normFoldoverData, normErrorData) VALUES (:recordDate, :name, :size, :size, :roiLength,  :binWidth, :counts, :baseUUID, :energyScaleData, :projectionData, :projectionErrorData, :normData, :normErrorData, :foldoverData, :foldoverErrorData, :normFoldoverData, :normErrorData)");
-    query.bindValue(":recordDate",QString("1992-03-03_00-00-00"));
+    QSqlQuery query(mDb);
+    query.prepare("INSERT INTO measurements (recordDate, name, size, roiWidth, roiLength, binWidth, counts,"
+                  " energyScaleData, projectionData, projectionErrorData, normData, normErrorData,foldoverData, foldoverErrorData, normFoldoverData, normFoldoverErrorData)"
+                  " VALUES (:recordDate, :name, :size, :roiWidth, :roiLength,  :binWidth, :counts, :energyScaleData, :projectionData, :projectionErrorData,"
+                  " :normData, :normErrorData, :foldoverData, :foldoverErrorData, :normFoldoverData, :normFoldoverErrorData)");
+    query.bindValue(":recordDate",QDateTime::currentDateTime());
     query.bindValue(":name", hist->mName);
     query.bindValue(":size",hist->mSize);
     query.bindValue(":roiWidth",hist->mRoiWidth);
@@ -595,4 +599,40 @@ bool HistManager::exportToDb(MpaCdbHist *hist){
 
 MpaCdbHist* HistManager::importFromDb(QString date, double roiWidth, double roiLength, double binWidth){
 
+}
+
+bool HistManager::openDb(QString path){
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    if(path.isEmpty()){
+        path ="/home/eicke/git/CDBSAnalyzer/database/results.db";
+    }
+    db.setDatabaseName(path);
+    if (!db.open())
+    {
+        qDebug() << "Could not open database file:";
+        qDebug() << db.lastError();
+        return -1;
+    }
+    qDebug() << "Opened Database";
+    QSqlQuery query(db);
+    query.exec("CREATE TABLE IF NOT EXISTS measurements ("
+               "recordDate TIMESTAMP NOT NULL, "
+               "name TEXT, "
+               "size INT NOT NULL, "
+               "roiWidth REAL NOT NULL, "
+               "roiLength REAL NOT NULL, "
+               "binWidth REAL NOT NULL, "
+               "counts INT, "
+               "baseUUID VARCHAR(38), "
+               "energyScaleData VARBINARY, "
+               "projectionData VARBINARY, "
+               "projectionErrorData VARBINARY, "
+               "normData VARBINARY, "
+               "normErrorData VARBINARY, "
+               "foldoverData VARBINARY, "
+               "foldoverErrorData VARBINARY, "
+               "normFoldoverData VARBINARY, "
+               "normFoldoverErrorData VARBINARY,"
+               "CONSTRAINT id PRIMARY KEY(recordDate, roiWidth, roiLength, binWidth));");
+    qDebug() << query.lastError();
 }

@@ -16,6 +16,16 @@ int main(int argc, char *argv[]){
     hist->mEnergyScale = v.setLinSpaced(10,510e3,520e3);
     hist->mEnergyScaleFoldover = v.setLinSpaced(5,515e3,520e3);
     hist->setRoiInformation(1,1,1);
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("/home/eicke/git/CDBSAnalyzer/database/results.db");
+    if (!db.open())
+    {
+        qDebug() << "Could not open database file:";
+        qDebug() << db.lastError();
+        return -1;
+    }
+    qDebug() << "Opened Database";
+    QSqlQuery query(db);
     QByteArray energyScaleData,projectionData,projectionErrorData,normData,normErrorData;
     QDataStream out1(&energyScaleData,QIODevice::ReadWrite);
     QDataStream out2(&projectionData,QIODevice::ReadWrite);
@@ -29,38 +39,46 @@ int main(int argc, char *argv[]){
         out4 << hist->mNormHist(i);
         out5 << hist->mNormHistError(i);
     }
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("/home/eicke/git/CDBSAnalyzer/database/results.db");
-    if (!db.open())
-    {
-        qDebug() << "Could not open database file:";
-        qDebug() << db.lastError();
-        return -1;
+    QByteArray energyScaleFoldoverData,projectionFoldoverData,projectionFoldoverErrorData,normFoldoverData,normFoldoverErrorData;
+    QDataStream out6(&energyScaleFoldoverData,QIODevice::ReadWrite);
+    QDataStream out7(&projectionFoldoverData,QIODevice::ReadWrite);
+    QDataStream out8(&projectionFoldoverErrorData,QIODevice::ReadWrite);
+    QDataStream out9(&normFoldoverData,QIODevice::ReadWrite);
+    QDataStream out10(&normFoldoverErrorData,QIODevice::ReadWrite);
+    for(int i=0;i<hist->mSize/2;i++){
+        out6 << hist->mEnergyScaleFoldover(i);
+        out7 << hist->mFoldoverHist(i);
+        out8 << hist->mFoldoverHistError(i);
+        out9 << hist->mNormFoldoverHist(i);
+        out10 << hist->mNormFoldoverHistError(i);
     }
-    qDebug() << "Opened Database";
-    QSqlQuery query(db);
-    query.exec("CREATE TABLE IF NOT EXISTS TEST(DATE CHAR(19) NOT NULL,NAME TEXT NOT NULL, SIZE INT NOT NULL, ROIWIDTH REAL, ROILENGTH REAL NOT NULL, BINWIDTH REAL, COUNTS REAL, ENERGYSCALE_DATA VARBINARY, PROJECTION_DATA VARBINARY, PROJECTION_ERROR_DATA VARBINARY, NORM_DATA VARBINARY, NORM_ERROR_DATA VARBINARY, CONSTRAINT ID PRIMARY KEY(DATE, ROIWIDTH, ROILENGTH, BINWIDTH));");
-    qDebug() << query.lastError();
-    query.prepare("INSERT INTO TEST (DATE, NAME, SIZE, ROIWIDTH, ROILENGTH, BINWIDTH, COUNTS, ENERGYSCALE_DATA, PROJECTION_ERROR_DATA, NORM_DATA, NORM_ERROR_DATA) VALUES (:DATE, :NAME, :SIZE, :ROIWIDTH, :ROILENGTH, :BINWIDTH, :COUNTS, :ENERGYSCALE_DATA, :PROJECTION_ERROR_DATA, :NORM_DATA, :NORM_ERROR_DATA)");
-    query.bindValue(":DATE",QString("1992-03-03_00-00-00"));
-    query.bindValue(":NAME", hist->mName);
-    query.bindValue(":SIZE",hist->mSize);
-    query.bindValue(":ROIWIDTH",hist->mRoiWidth);
-    query.bindValue(":ROILENGTH",hist->mRoiLength);
-    query.bindValue(":BINWIDTH",hist->mEnergyBinWidth);
-    query.bindValue(":COUNTS",hist->mNorm);
-    query.bindValue(":ENERGYSCALE_DATA",energyScaleData);
-    query.bindValue(":PROJECTION_DATA",projectionData);
-    query.bindValue(":PROJECTION_ERROR_DATA",projectionErrorData);
-    query.bindValue(":NORM_DATA", normData);
-    query.bindValue(":NORM_ERROR_DATA",normErrorData);
-    //query.exec("INSERT INTO CUSTOMERS (ID,NAME,AGE,ADDRESS,SALARY) VALUES (1, 'Ramesh', 32, 'Ahmedabad', 2000.00 );");
+
+    query.prepare("INSERT INTO measurements (recordDate, name, size, roiWidth, roiLength, binWidth, counts,"
+                  " energyScaleData, projectionData, projectionErrorData, normData, normErrorData,foldoverData, foldoverErrorData, normFoldoverData, normFoldoverErrorData)"
+                  " VALUES (:recordDate, :name, :size, :roiWidth, :roiLength,  :binWidth, :counts, :energyScaleData, :projectionData, :projectionErrorData,"
+                  " :normData, :normErrorData, :foldoverData, :foldoverErrorData, :normFoldoverData, :normFoldoverErrorData)");
+    query.bindValue(":recordDate",QDateTime::currentDateTime());
+    query.bindValue(":name", hist->mName);
+    query.bindValue(":size",hist->mSize);
+    query.bindValue(":roiWidth",hist->mRoiWidth);
+    query.bindValue(":roiLength",hist->mRoiLength);
+    query.bindValue(":binWidth",hist->mEnergyBinWidth);
+    query.bindValue(":counts",hist->mNorm);
+    query.bindValue(":energyScaleData",energyScaleData);
+    query.bindValue(":projectionData",projectionData);
+    query.bindValue(":projectionErrorData",projectionErrorData);
+    query.bindValue(":normData", normData);
+    query.bindValue(":normErrorData",normErrorData);
+    query.bindValue(":foldoverData",projectionFoldoverData);
+    query.bindValue(":foldoverErrorData",projectionFoldoverErrorData);
+    query.bindValue(":normFoldoverData", normFoldoverData);
+    query.bindValue(":normFoldoverErrorData",normFoldoverErrorData);
     query.exec();
     qDebug() << query.lastError();
-    query.exec("SELECT * FROM test");
+    query.exec("SELECT * FROM measurements");
     while(query.next()){
         qDebug() << query.value(1);
-        QByteArray data = query.value("ENERGYSCALE_DATA").toByteArray();
+        QByteArray data = query.value("energyScaleData").toByteArray();
         QDataStream in(&data,QIODevice::ReadOnly);
         double tmp;
         while(!in.atEnd()){

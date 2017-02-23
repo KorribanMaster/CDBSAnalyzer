@@ -40,8 +40,9 @@ private:
 
 public:
 
-    bool exportToDb(MpaCdbHist hist);
+    bool exportToDb(MpaCdbHist *hist);
     MpaCdbHist* importFromDb(QString date,double roiWidth,double roiLength, double binWidth);
+    bool openDb(QString path  = "");
     Mpa1dHist* get1dHist(int index);
     Mpa1dHist* get1dHist(QString name);
     QStringList get1dHistList();

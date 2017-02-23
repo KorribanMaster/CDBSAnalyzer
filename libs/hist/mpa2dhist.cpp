@@ -70,21 +70,33 @@ struct lmdif_gauss2d_functor : Functor<double>
 
 struct lmdif_gauss2dex_functor : Functor<double>
 {
-    const int mYSize;
-    Eigen::VectorXd mY;
-    lmdif_gauss2dex_functor(const Eigen::VectorXd &y,int ysize) : Functor<double>(10,ysize), mYSize(ysize),mY(y) {}
+    Eigen::VectorXd mZ;
+    lmdif_gauss2dex_functor(const Eigen::VectorXd &z,int zsize) : Functor<double>(6,zsize),mZ(z) {}
     int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
     {
-        assert(x.size()==10);
-        assert(fvec.size()==mYSize);
-        for(int i=0;i<std::sqrt(mYSize);i++){
-            for(int j=0;j<std::sqrt(mYSize);j++){
-                //implement error of gaussian
-                int sum = i*std::sqrt(mYSize)+j;
-                fvec(sum) = mY(sum) - ((x(0)*std::exp(-(std::pow((i-x(1)),2)/(2*std::pow(x(2),2)))))+(x(3)*std::exp(-(std::pow((j-x(4)),2)/(2*std::pow(x(5),2)))))+(x(6)*std::exp(-(std::pow(((j+mYSize - i)-x(7)),2)/(2*std::pow(x(8),2)))))+x(9));
-            }
-
+        assert(x.size()==6);
+        int size=std::sqrt(mZ.size());
+        // parameters are: [Amplitude, x0, sigmax, y0, sigmay, angel(in rad)]
+        Eigen::VectorXd xrow,ycol;
+        xrow.setLinSpaced(size,1,size);
+        ycol.setLinSpaced(size,size,1);
+        for(int i=0;i<std::sqrt(size);i++){
+            xrow(i) = xrow(i)*std::cos(x(5))-xrow(i)*std::sin(x(5));
+            ycol(i) = ycol(i)*std::sin(x(5))+ycol(i)*std::cos(x(5));
         }
+
+        Eigen::ArrayXd xmesh(size,size),ymesh(size,size);
+        for(int i=0;i<std::sqrt(size);i++){
+            xmesh.row(i) = xrow;
+            ymesh.col(i) = ycol;
+        }
+        double x0rot = x(1)*std::cos(x(5)) - x(3)*std::sin(x(5));
+        double y0rot = x(1)*std::sin(x(6)) + x(3)*std::cos(x(5));
+        Eigen::Map<Eigen::MatrixXd> Z0((double*)mZ.data(),size,size);
+        Eigen::ArrayXd err = Z0.array()-x(0)*(-((xmesh-x0rot).square()/(2*std::pow(x(2),2))+(ymesh-y0rot).square()/(2*std::pow(x(4),2)))).exp();
+        Eigen::Map<Eigen::VectorXd> f(err.data(),mZ.size());
+        fvec = f;
+
         return 0;
     }
 };
@@ -258,6 +270,9 @@ void Mpa2dHist::findCenter2d(){
     mCenter(1) = x(4)+400;
     qDebug() << mCenter(0) << "," << mCenter(1);
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
+
+    //Test: Normalise full hist
+    //mCenteredHist = (mCenteredHist.array()/mRawHist.sum()).matrix();
     //mCenteredHist = mRawHist;
 }
 
@@ -450,7 +465,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
         setDepth(tmpDepth);
         setRoi(tmpRoiWidth,tmpRoiLength);
         setEnergyBinWidth(tmpEnergyBinWidth);
-        translateMap(mOffset*(-1),200);
+        //translateMap(mOffset*(-1),200);
         //updateMap();
 
     }
@@ -479,7 +494,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     }
     for (int i=0;i<mRoiGrid.size();i++){
         futures[i].waitForFinished(); //wait till computation has finished;
-        projection->setBinContent(i,mRoiGrid[i]->content(),mRoiGrid[i]->incomplete());
+        projection->setBinContent(i,mRoiGrid[i]->content(),mRoiGrid[i]->mEdges[1].norm(),mRoiGrid[i]->incomplete());
     }
 
     //projection->autoCalibration(mEnergyBinWidth);

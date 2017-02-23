@@ -74,11 +74,15 @@ void MpaCdbHist::setSize(int size){
     mNormFoldoverHistError.resize(mSize/2);
     mEnergyScale.resize(mSize);
     mEnergyScaleFoldover.resize(mSize/2);
+    mIncomplete.resize(mSize);
+    mSingleBinWidth.resize(mSize);
 }
 
-void MpaCdbHist::setBinContent(int nBin,double counts,double incomplete){
+void MpaCdbHist::setBinContent(int nBin, double counts, double binWidth, double incomplete){
     mProjectionHist(nBin) = counts;
-    mProjectionHistError(nBin) = std::sqrt(counts);//+std::pow(incomplete,2));
+    mProjectionHistError(nBin) = std::sqrt(counts+std::pow(incomplete,2));
+    mIncomplete(nBin) = incomplete;
+    mSingleBinWidth(nBin) = binWidth;
 }
 
 void MpaCdbHist::setCalibration(float channelToEnergy, float peakEnergy, float peakPosition){
@@ -113,14 +117,15 @@ void MpaCdbHist::setRoiInformation(double roiWidth, double roiLength, double bin
 
 void MpaCdbHist::calculateNorm(){
     mNorm = 0;
+    //mSingleBinWidth = (mSingleBinWidth.array()/mSingleBinWidth.sum()).matrix();
     for(int i=0;i<mSize;i++){
         mNorm += mProjectionHist(i);
     }
     //double normError = std::sqrt((mProjectionHistError.array()*mProjectionHistError.array()).sum());
     for(int i=0;i<mSize;i++){
-        mNormHist(i) = mProjectionHist(i)/mNorm;
+        mNormHist(i) = mProjectionHist(i)/(mNorm*mSingleBinWidth(i));
         //error calculation
-        mNormHistError(i) = std::sqrt(1/mProjectionHist(i)+1/mNorm)*mNormHist(i);
+        mNormHistError(i) = std::sqrt(std::pow(mProjectionHistError(i)/mProjectionHist(i),2)+std::pow(std::sqrt(mNorm)/mNorm,2))*mNormHist(i);
     }
 }
 
@@ -133,9 +138,9 @@ void MpaCdbHist::calculateFoldover(){
     else{
         for(int i=0;i<mSize/2;i++){
             mFoldoverHist(i) = mProjectionHist(mSize/2+i) + mProjectionHist(mSize/2-1-i);
-            mFoldoverHistError(i) = std::sqrt(mFoldoverHist(i));
-            mNormFoldoverHist(i) = mNormHist(mSize/2+i) + mNormHist(mSize/2-1-i);
-            mNormFoldoverHistError(i) = std::sqrt(1/mFoldoverHist(i)+1/mNorm)*mNormFoldoverHist(i);
+            mFoldoverHistError(i) = std::sqrt(std::pow(mProjectionHistError(mSize/2+i),2)+std::pow(mProjectionHistError(mSize/2-1-i),2));
+            mNormFoldoverHist(i) = (mProjectionHist(mSize/2+i) + mProjectionHist(mSize/2-1-i))/(mNorm*mSingleBinWidth(i));
+            mNormFoldoverHistError(i) = std::sqrt(std::pow(mFoldoverHistError(i)/mFoldoverHist(i),2)+std::pow(std::sqrt(mNorm)/mNorm,2))*mNormFoldoverHist(i);
         }
     }
 }

@@ -604,7 +604,7 @@ MpaCdbHist* HistManager::importFromDb(QString date, double roiWidth, double roiL
 bool HistManager::openDb(QString path){
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     if(path.isEmpty()){
-        path ="/home/eicke/git/CDBSAnalyzer/database/results.db";
+        path ="../database/results.db";
     }
     db.setDatabaseName(path);
     if (!db.open())

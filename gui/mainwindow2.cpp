@@ -178,9 +178,16 @@ void MainWindow2::previewButtonClicked(){
     }
     mMapPlot->show();
     Mpa2dHist *hist = mManager->get2dHist(list[0]);
-    hist->setEnergyBinWidth(ui->editBinWidth->text().toDouble());
-    hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
-    hist->updateRoi();
+    if(ui->checkVariableRoi->checkState() == Qt::Unchecked){
+        hist->setEnergyBinWidth(ui->editBinWidth->text().toDouble());
+        hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
+        hist->updateRoi();
+    }
+    else{
+        hist->setEnergyBinWidth(-1);
+        hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
+        hist->updateRoi();
+    }
     mMapPlot->addHist(hist);
 
     return;

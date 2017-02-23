@@ -9,7 +9,7 @@ int main(int argc, char *argv[]){
     MpaCdbHist *hist = new MpaCdbHist("dbtest");
     hist->setSize(10);
     for(int i=0;i<10;i++){
-        hist->setBinContent(i,i,0);
+        hist->setBinContent(i,i,0,0);
         }
     hist->calculateFoldover();
     Eigen::VectorXd v;

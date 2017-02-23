@@ -20,7 +20,7 @@ public:
     ~MpaCdbHist();
 
     void setSize(int nBins);
-    void setBinContent(int nBin, double counts, double incomplete);
+    void setBinContent(int nBin, double counts ,double binWidth, double incomplete);
     void setRoiInformation(double roiWidth,double roiLength,double binWidth);
     void setCalibration(float channelToEnergy,float peakEnergy,float peakPosition);
     double autoCalibration(double binWidth);
@@ -37,7 +37,8 @@ public:
     double mEnergyBinWidth;
 
     int mMaxDepth;
-
+    Eigen::VectorXd mIncomplete;
+    Eigen::VectorXd mSingleBinWidth;
     Eigen::VectorXd mProjectionHist;
     Eigen::VectorXd mNormHist;
     Eigen::VectorXd mNormFoldoverHist;

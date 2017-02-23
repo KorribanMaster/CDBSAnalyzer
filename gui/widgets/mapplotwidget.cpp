@@ -66,6 +66,19 @@ void MapPlotWidget::addHist(Mpa2dHist *hist){
         line->start->setCoords(hist->mRoiBorder->mCorners[i](0),hist->mRoiBorder->mCorners[i](1));
         line->end->setCoords(hist->mRoiBorder->mCorners[next](0),hist->mRoiBorder->mCorners[next](1));
     }
+    //Add Roi Segments
+    for(int j=0;j<hist->mRoiGrid.size();j++){
+        for(int i=0;i<4;i++){
+            QCPItemLine *line = new QCPItemLine(ui->customPlot);
+            int next = i+1;
+            if (next == 4){
+                next = 0;
+            }
+            line->start->setCoords(hist->mRoiGrid[j]->mCorners[i](0),hist->mRoiGrid[j]->mCorners[i](1));
+            line->end->setCoords(hist->mRoiGrid[j]->mCorners[next](0),hist->mRoiGrid[j]->mCorners[next](1));
+        }
+
+    }
     //mark center
     QCPItemLine *crossX = new QCPItemLine(ui->customPlot);
     crossX->start->setCoords(511e3,510.8e3);

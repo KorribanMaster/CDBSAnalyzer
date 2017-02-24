@@ -2,6 +2,7 @@
 
 #include <unsupported/Eigen/NonLinearOptimization>
 #include <unsupported/Eigen/NumericalDiff>
+#include <unsupported/Eigen/SpecialFunctions>
 
 #include <QDebug>
 #include <QtConcurrent>
@@ -100,6 +101,89 @@ struct lmdif_gauss2dex_functor : Functor<double>
         return 0;
     }
 };
+
+struct lmdif_gauss4dex_functor : Functor<double>
+{
+    Eigen::VectorXd mZ;
+    lmdif_gauss4dex_functor(const Eigen::VectorXd &z,int zsize) : Functor<double>(10,zsize),mZ(z) {}
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    {
+        assert(x.size()==10);
+        int size=std::sqrt(mZ.size());
+        // parameters are: [Amplitude, x0, sigmaxrot, y0, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
+        Eigen::VectorXd xrow,ycol;
+        xrow.setLinSpaced(size,1,size);
+        ycol.setLinSpaced(size,size,1);
+        Eigen::ArrayXXd xmesh(size,size),ymesh(size,size);
+        for(int i=0;i<size;i++){
+            xmesh.row(i) = xrow;
+            ymesh.col(i) = ycol;
+        }
+        for(int i=0;i<size;i++){
+            xrow(i) = xrow(i)*std::cos(x(5))-xrow(i)*std::sin(x(5));
+            ycol(i) = ycol(i)*std::sin(x(5))+ycol(i)*std::cos(x(5));
+        }
+
+        Eigen::ArrayXXd xmeshrot(size,size),ymeshrot(size,size);
+        for(int i=0;i<size;i++){
+            xmeshrot.row(i) = xrow;
+            ymeshrot.col(i) = ycol;
+        }
+        double x0rot = x(1)*std::cos(x(5)) - x(3)*std::sin(x(5));
+        double y0rot = x(1)*std::sin(x(5)) + x(3)*std::cos(x(5));
+        Eigen::Map<Eigen::ArrayXXd> Z0((double*)mZ.data(),size,size);
+        Eigen::ArrayXXd rotgauss = x(0)*(-((xmeshrot-x0rot).square()/(2*std::pow(x(2),2))+(ymeshrot-y0rot).square()/(2*std::pow(x(4),2)))).exp();
+        Eigen::ArrayXXd crossgauss = x(6)*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+x(8)*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x(9),2)));
+        Eigen::ArrayXXd crossgausserfc = (x(6)*0.1*Eigen::erfc((ymesh-x(3))/x(4))+0.9*x(6))*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+(x(8)*0.1*Eigen::erfc((ymesh-x(1))/x(2))+0.9*x(8))*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x(9),2)));
+        Eigen::ArrayXXd err = Z0-(rotgauss+crossgausserfc);
+        Eigen::Map<Eigen::VectorXd> f(err.data(),mZ.size());
+        fvec = f;
+
+        return 0;
+    }
+};
+
+struct lmdif_gaussrotonly_functor : Functor<double>
+{
+    Eigen::VectorXd mZ;
+    Eigen::VectorXd mCenter;
+    lmdif_gaussrotonly_functor(const Eigen::VectorXd &z,int zsize,const Eigen::VectorXd center) : Functor<double>(8,zsize),mZ(z),mCenter(center) {}
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    {
+        assert(x.size()==8);
+        int size=std::sqrt(mZ.size());
+        // parameters are: [Amplitude, sigmaxrot, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
+        Eigen::VectorXd xrow,ycol;
+        xrow.setLinSpaced(size,1,size);
+        ycol.setLinSpaced(size,size,1);
+        Eigen::ArrayXXd xmesh(size,size),ymesh(size,size);
+        for(int i=0;i<size;i++){
+            xmesh.row(i) = xrow;
+            ymesh.col(i) = ycol;
+        }
+        for(int i=0;i<size;i++){
+            xrow(i) = xrow(i)*std::cos(x(3))-xrow(i)*std::sin(x(3));
+            ycol(i) = ycol(i)*std::sin(x(3))+ycol(i)*std::cos(x(3));
+        }
+
+        Eigen::ArrayXXd xmeshrot(size,size),ymeshrot(size,size);
+        for(int i=0;i<size;i++){
+            xmeshrot.row(i) = xrow;
+            ymeshrot.col(i) = ycol;
+        }
+        double x0rot = mCenter(0)*std::cos(x(3)) - mCenter(1)*std::sin(x(3));
+        double y0rot = mCenter(0)*std::sin(x(3)) + mCenter(1)*std::cos(x(3));
+        Eigen::Map<Eigen::ArrayXXd> Z0((double*)mZ.data(),size,size);
+        Eigen::ArrayXXd rotgauss = x(0)*(-((xmeshrot-x0rot).square()/(2*std::pow(x(1),2))+(ymeshrot-y0rot).square()/(2*std::pow(x(2),2)))).exp();
+        Eigen::ArrayXXd crossgauss = x(4)*Eigen::exp(-(xmesh-mCenter(0)).square()/(2*std::pow(x(5),2)))+x(6)*Eigen::exp(-(ymesh-mCenter(1)).square()/(2*std::pow(x(7),2)));
+        Eigen::ArrayXXd err = Z0-(rotgauss+crossgauss);
+        Eigen::Map<Eigen::VectorXd> f(err.data(),mZ.size());
+        fvec = f;
+
+        return 0;
+    }
+};
+
 
 Mpa2dHist::Mpa2dHist(QString name)
 {
@@ -268,7 +352,7 @@ void Mpa2dHist::findCenter2d(){
 
     mCenter(0) = x(1)+400;
     mCenter(1) = x(4)+400;
-    qDebug() << mCenter(0) << "," << mCenter(1);
+    qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
 
     //Test: Normalise full hist
@@ -280,21 +364,65 @@ void Mpa2dHist::findCenterEx(){
     Eigen::Vector2d backup = mCenter;
     Eigen::VectorXd x(6);
 
-    Eigen::MatrixXd cut = mRawHist.block<400,400>(300,300);
+    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
     // parameters are: [Amplitude, x0, sigmax, y0, sigmay, angel(in rad)]
-    x << cut.maxCoeff(),cut.cols()/2,10,cut.rows()/2,10,3.14/4;
+    x << cut.maxCoeff(),cut.cols()/2,20,cut.rows()/2,10,3.14/5;
     Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
     lmdif_gauss2dex_functor functor(y,y.size());
     Eigen::NumericalDiff<lmdif_gauss2dex_functor> numDiff(functor);
     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2dex_functor>,double> lm(numDiff);
     lm.parameters.maxfev = 6000;
-    lm.parameters.xtol = 1.0e-4;
+    lm.parameters.xtol = 1.0e-6;
     int ret = lm.minimize(x);
-    mCenter(0) = x(1)+300;
-    mCenter(1) = x(3)+300;
+    qDebug() << lm.nfev;
+    mCenter(0) = x(1)+400;
+    mCenter(1) = x(3)+400;
     qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
     mCal(1) = -1*mCal(0)*std::tan(x(5));
+    qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+}
+
+void Mpa2dHist::findCenter4d(){
+    Eigen::Vector2d backup = mCenter;
+    Eigen::VectorXd x(10);
+
+    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
+    // parameters are: [Amplitude rot, x0, sigmaxrot, y0, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
+    x << cut.maxCoeff()*0.8,cut.cols()/2,40,cut.rows()/2,10,3.14/5,cut.maxCoeff()*0.2,10,cut.maxCoeff()*0.2,10;
+    Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
+    lmdif_gauss4dex_functor functor(y,y.size());
+    Eigen::NumericalDiff<lmdif_gauss4dex_functor> numDiff(functor);
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss4dex_functor>,double> lm(numDiff);
+    lm.parameters.maxfev = 6000;
+    lm.parameters.xtol = 1.0e-6;
+    int ret = lm.minimize(x);
+    qDebug() << lm.nfev;
+    //mCenter(0) = x(1)+400;
+    //mCenter(1) = x(3)+400;
+    qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
+    mCal(1) = std::abs(mCal(0)*std::tan(x(5)));
+    qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+    mCal(1) = std::abs(mCal(0)/std::tan(x(5)));
+    qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+}
+
+void Mpa2dHist::findRot(){
+    Eigen::Vector2d backup = mCenter;
+    Eigen::VectorXd x(8);
+
+    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
+    // parameters are: [Amplitude, x0, sigmax, y0, sigmay, angel(in rad)]
+    x << cut.maxCoeff()*0.8,40,10,3.14/5,cut.maxCoeff()*0.1,10,cut.maxCoeff()*0.1,10;
+    Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
+    lmdif_gaussrotonly_functor functor(y,y.size(),mCenter-400);
+    Eigen::NumericalDiff<lmdif_gaussrotonly_functor> numDiff(functor);
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gaussrotonly_functor>,double> lm(numDiff);
+    lm.parameters.maxfev = 6000;
+    lm.parameters.xtol = 1.0e-6;
+    int ret = lm.minimize(x);
+    mCal(1) = std::abs(mCal(0)*std::tan(x(3)));
     qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
 }
 
@@ -473,7 +601,8 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     //centerHist();
 
     if(!mMapInitialised){
-        findCenterEx();
+        findCenter4d();
+        //findRot();
         updateMap();
         mMapInitialised = true;
         int tmpDepth = mDepth;

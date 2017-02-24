@@ -31,7 +31,9 @@ public:
 
     void findCenter();
     void findCenter2d();
+    void findRot();
     void findCenterEx();
+    void findCenter4d();
     void updateRoi();
     void variableRoi();
     void updateMap();

@@ -80,20 +80,20 @@ struct lmdif_gauss2dex_functor : Functor<double>
         Eigen::VectorXd xrow,ycol;
         xrow.setLinSpaced(size,1,size);
         ycol.setLinSpaced(size,size,1);
-        for(int i=0;i<std::sqrt(size);i++){
+        for(int i=0;i<size;i++){
             xrow(i) = xrow(i)*std::cos(x(5))-xrow(i)*std::sin(x(5));
             ycol(i) = ycol(i)*std::sin(x(5))+ycol(i)*std::cos(x(5));
         }
 
-        Eigen::ArrayXd xmesh(size,size),ymesh(size,size);
-        for(int i=0;i<std::sqrt(size);i++){
+        Eigen::ArrayXXd xmesh(size,size),ymesh(size,size);
+        for(int i=0;i<size;i++){
             xmesh.row(i) = xrow;
             ymesh.col(i) = ycol;
         }
         double x0rot = x(1)*std::cos(x(5)) - x(3)*std::sin(x(5));
-        double y0rot = x(1)*std::sin(x(6)) + x(3)*std::cos(x(5));
+        double y0rot = x(1)*std::sin(x(5)) + x(3)*std::cos(x(5));
         Eigen::Map<Eigen::MatrixXd> Z0((double*)mZ.data(),size,size);
-        Eigen::ArrayXd err = Z0.array()-x(0)*(-((xmesh-x0rot).square()/(2*std::pow(x(2),2))+(ymesh-y0rot).square()/(2*std::pow(x(4),2)))).exp();
+        Eigen::ArrayXXd err = Z0.array()-x(0)*(-((xmesh-x0rot).square()/(2*std::pow(x(2),2))+(ymesh-y0rot).square()/(2*std::pow(x(4),2)))).exp();
         Eigen::Map<Eigen::VectorXd> f(err.data(),mZ.size());
         fvec = f;
 
@@ -276,6 +276,28 @@ void Mpa2dHist::findCenter2d(){
     //mCenteredHist = mRawHist;
 }
 
+void Mpa2dHist::findCenterEx(){
+    Eigen::Vector2d backup = mCenter;
+    Eigen::VectorXd x(6);
+
+    Eigen::MatrixXd cut = mRawHist.block<400,400>(300,300);
+    // parameters are: [Amplitude, x0, sigmax, y0, sigmay, angel(in rad)]
+    x << cut.maxCoeff(),cut.cols()/2,10,cut.rows()/2,10,3.14/4;
+    Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
+    lmdif_gauss2dex_functor functor(y,y.size());
+    Eigen::NumericalDiff<lmdif_gauss2dex_functor> numDiff(functor);
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss2dex_functor>,double> lm(numDiff);
+    lm.parameters.maxfev = 6000;
+    lm.parameters.xtol = 1.0e-4;
+    int ret = lm.minimize(x);
+    mCenter(0) = x(1)+300;
+    mCenter(1) = x(3)+300;
+    qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
+    mCal(1) = -1*mCal(0)*std::tan(x(5));
+    qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+}
+
 void Mpa2dHist::centerHist(){
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
 }
@@ -451,7 +473,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     //centerHist();
 
     if(!mMapInitialised){
-        findCenter2d();
+        findCenterEx();
         updateMap();
         mMapInitialised = true;
         int tmpDepth = mDepth;

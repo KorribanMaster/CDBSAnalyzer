@@ -16,7 +16,8 @@ class MapPlotWidget : public QWidget
 public:
     explicit MapPlotWidget(QWidget *parent = 0);
     ~MapPlotWidget();
-    void addHist(Mpa2dHist *hist);
+    void plotRaw(Mpa2dHist *hist);
+    void plotMap(Mpa2dHist *hist);
     void addRoi(double roiWidth, double roiLength, double binWidth);
 
 private:

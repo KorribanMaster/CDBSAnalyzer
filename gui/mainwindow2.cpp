@@ -188,7 +188,7 @@ void MainWindow2::previewButtonClicked(){
         hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
         hist->updateRoi();
     }
-    mMapPlot->addHist(hist);
+    mMapPlot->plotMap(hist);
 
     return;
 }

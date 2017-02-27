@@ -30,7 +30,7 @@
        <string extracomment="Give a descriptive name"/>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab1">
        <attribute name="title">
@@ -106,6 +106,60 @@
         <string>Compute</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
+        <item row="4" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonPlotCdbs">
+            <property name="text">
+             <string>Plot</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
+          <property name="bottomMargin">
+           <number>20</number>
+          </property>
+          <item>
+           <widget class="QTableView" name="tableCDBS">
+            <property name="baseSize">
+             <size>
+              <width>5</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelMaps">
+          <property name="text">
+           <string>CDB Maps</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
@@ -120,24 +174,17 @@
           </item>
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="2" column="0">
-             <widget class="QLabel" name="labelBinWidth">
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="editBinWidth">
               <property name="text">
-               <string>Bin Width</string>
+               <string>200</string>
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="labelSplitDepth">
+            <item row="0" column="0">
+             <widget class="QLabel" name="labelRoiWidth">
               <property name="text">
-               <string>Split Depth</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="labelRoiLength">
-              <property name="text">
-               <string>Roi Length</string>
+               <string>Roi Width</string>
               </property>
              </widget>
             </item>
@@ -165,17 +212,24 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="editBinWidth">
+            <item row="2" column="0">
+             <widget class="QLabel" name="labelBinWidth">
               <property name="text">
-               <string>200</string>
+               <string>Bin Width</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="labelRoiWidth">
+            <item row="3" column="0">
+             <widget class="QLabel" name="labelSplitDepth">
               <property name="text">
-               <string>Roi Width</string>
+               <string>Split Depth</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="labelRoiLength">
+              <property name="text">
+               <string>Roi Length</string>
               </property>
              </widget>
             </item>
@@ -226,13 +280,6 @@
               </item>
              </widget>
             </item>
-            <item row="1" column="2">
-             <widget class="QPushButton" name="buttonPreview">
-              <property name="text">
-               <string>Preview</string>
-              </property>
-             </widget>
-            </item>
             <item row="2" column="2">
              <widget class="QCheckBox" name="checkVariableRoi">
               <property name="text">
@@ -250,6 +297,20 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="2">
+             <widget class="QPushButton" name="buttonPreview">
+              <property name="text">
+               <string>Preview</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="3">
+             <widget class="QPushButton" name="pushButton">
+              <property name="text">
+               <string>Result</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -260,60 +321,6 @@
            <string>CDBS</string>
           </property>
          </widget>
-        </item>
-        <item row="3" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
-          </property>
-          <property name="bottomMargin">
-           <number>20</number>
-          </property>
-          <item>
-           <widget class="QTableView" name="tableCDBS">
-            <property name="baseSize">
-             <size>
-              <width>5</width>
-              <height>0</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="labelMaps">
-          <property name="text">
-           <string>CDB Maps</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonPlotCdbs">
-            <property name="text">
-             <string>Plot</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
        </layout>
       </widget>

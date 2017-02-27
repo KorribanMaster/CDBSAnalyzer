@@ -256,14 +256,14 @@ void Mpa2dHist::setCenter(float xcenter, float ycenter){
 void Mpa2dHist::updateEnergyScale(){
     mXEnergyscale.setLinSpaced(mXSize,511e3-(mCenter(0))*mCal(0),511e3+(mXSize-mCenter(0))*mCal(0));
     mYEnergyscale.setLinSpaced(mYSize,511e3-(mCenter(1))*mCal(1),511e3+(mYSize-mCenter(1))*mCal(1));
-    qDebug() << "Corners map";
-    qDebug() << (511e3-400*mCal(0)) << (511e3+400*mCal(1));
-    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
-    qDebug() << 511e3+(mXSize-mCenter(1))*mCal(1);
-    qDebug() << 511e3-(mCenter(0))*mCal(0);
-    qDebug() << 511e3-(mCenter(1))*mCal(1);
-    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
-    qDebug() << 511e3-(mCenter(1))*mCal(1);
+//    qDebug() << "Corners map";
+//    qDebug() << (511e3-400*mCal(0)) << (511e3+400*mCal(1));
+//    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
+//    qDebug() << 511e3+(mXSize-mCenter(1))*mCal(1);
+//    qDebug() << 511e3-(mCenter(0))*mCal(0);
+//    qDebug() << 511e3-(mCenter(1))*mCal(1);
+//    qDebug() << 511e3+(mXSize-mCenter(0))*mCal(0);
+//    qDebug() << 511e3-(mCenter(1))*mCal(1);
 }
 
 void Mpa2dHist::findCenter(){
@@ -539,7 +539,7 @@ void Mpa2dHist::variableRoi(){
 void Mpa2dHist::updateMap(){
     mEnergyMap.clear();
     Eigen::Array2d leftTop;
-    leftTop(0) = mEnergyCenter(0)*1e3-(mCenteredHist.rows()/2)*mCal(0);
+    leftTop(0) = mEnergyCenter(0)*1e3-(mCenteredHist.rows()/2)*mCal(0);//correction missing for using int percision here
     leftTop(1) = mEnergyCenter(1)*1e3+(mCenteredHist.cols()/2)*mCal(1);
     for(int y=0;y<mCenteredHist.cols();y++){
        for(int x=0;x<mCenteredHist.rows();x++){
@@ -558,7 +558,7 @@ void Mpa2dHist::updateMap(){
            corners.push_back(tmp);
            tmp = center-odd*mCal;
            corners.push_back(tmp);
-           CdbPixel *px = new CdbPixel(corners,mCenteredHist(y,x));
+           CdbPixel *px = new CdbPixel(corners,mCenteredHist(mCenteredHist.rows()-y-1,x));
            mEnergyMap.push_back(px);
            if (x==0 && y==0){
                qDebug()<< "upper left:";
@@ -601,7 +601,7 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     //centerHist();
 
     if(!mMapInitialised){
-        findCenter4d();
+        findCenter2d();
         //findRot();
         updateMap();
         mMapInitialised = true;

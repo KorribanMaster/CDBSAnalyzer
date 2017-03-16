@@ -17,6 +17,25 @@
    <item>
     <widget class="QCustomPlot" name="customPlot" native="true"/>
    </item>
+   <item>
+    <widget class="QComboBox" name="comboBox">
+     <item>
+      <property name="text">
+       <string>Raw</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Centered</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Map</string>
+      </property>
+     </item>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>

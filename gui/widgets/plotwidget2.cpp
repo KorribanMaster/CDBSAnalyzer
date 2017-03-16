@@ -90,8 +90,15 @@ void PlotWidget2::addHist(MpaCdbHist *hist){
     if(index==0){
         ui->customPlot->xAxis->setLabel("Energy");
         ui->customPlot->yAxis->setLabel("Counts");
+
         ui->customPlot->xAxis->setRange(x.first(),x.last());
         ui->customPlot->yAxis->setRange(0,hist->mNormHist.maxCoeff());
+        QSharedPointer<QCPAxisTickerLog> logTicker(new QCPAxisTickerLog);
+        ui->customPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+        ui->customPlot->yAxis->setTicker(logTicker);
+        ui->customPlot->yAxis->setNumberFormat("eb"); // e = exponential, b = beautiful decimal powers
+        ui->customPlot->yAxis->setNumberPrecision(0); // makes sure "1*10^4" is displayed only as "10^4"
+
 
     }
     qDebug() << ui->customPlot->plottableCount();
@@ -139,7 +146,7 @@ void PlotWidget2::addHist(MpaRefHist *hist){
         ui->customPlot->xAxis->setLabel("Energy");
         ui->customPlot->yAxis->setLabel("Counts");
         ui->customPlot->xAxis->setRange(x.first(),x.last());
-        ui->customPlot->yAxis->setRange(0,hist->mRefHist.maxCoeff());
+        ui->customPlot->yAxis->setRange(hist->mRefHist.minCoeff(),hist->mRefHist.maxCoeff());
         ui->typeComboBox->removeItem(0);
         ui->typeComboBox->removeItem(1);
 
@@ -227,9 +234,10 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mDataX[i],mNormDataY[i]);
                 mErrorBarPointer[i]->setData(mNormErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mDataX[i].takeFirst(),mDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mDataX[i].first(),mDataX[i].last());
                 double max = *std::max_element(mNormDataY[i].begin(), mNormDataY[i].end());
-                ui->customPlot->yAxis->setRange(0,max);
+                double min = *std::min_element(mNormDataY[i].begin(), mNormDataY[i].end());
+                ui->customPlot->yAxis->setRange(min,max);
 
             }
             break;
@@ -241,9 +249,10 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mFoldoverDataX[i],mNormFoldoverDataY[i]);
                 mErrorBarPointer[i]->setData(mNormFoldoverErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].takeFirst(),mFoldoverDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].first(),mFoldoverDataX[i].last());
                 double max = *std::max_element(mNormFoldoverDataY[i].begin(), mNormFoldoverDataY[i].end());
-                ui->customPlot->yAxis->setRange(0,max);
+                double min = *std::min_element(mNormFoldoverDataY[i].begin(), mNormFoldoverDataY[i].end());
+                ui->customPlot->yAxis->setRange(min,max);
 
 
             }
@@ -259,7 +268,7 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mDataX[i],mDataY[i]);
                 mErrorBarPointer[i]->setData(mErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mDataX[i].takeFirst(),mDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mDataX[i].first(),mDataX[i].last());
                 double max = *std::max_element(mDataY[i].begin(), mDataY[i].end());
                 ui->customPlot->yAxis->setRange(0,max);
 
@@ -272,7 +281,7 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mDataX[i],mNormDataY[i]);
                 mErrorBarPointer[i]->setData(mNormErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mDataX[i].takeFirst(),mDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mDataX[i].first(),mDataX[i].last());
                 double max = *std::max_element(mNormDataY[i].begin(), mNormDataY[i].end());
                 ui->customPlot->yAxis->setRange(0,max);
 
@@ -285,7 +294,7 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mFoldoverDataX[i],mFoldoverDataY[i]);
                 mErrorBarPointer[i]->setData(mFoldoverErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].takeFirst(),mFoldoverDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].first(),mFoldoverDataX[i].last());
                 double max = *std::max_element(mFoldoverDataY[i].begin(), mFoldoverDataY[i].end());
                 ui->customPlot->yAxis->setRange(0,max);
 
@@ -299,7 +308,7 @@ void PlotWidget2::changeView(int state){
                 QCPGraph *plt = ui->customPlot->graph(i);
                 plt->setData(mFoldoverDataX[i],mNormFoldoverDataY[i]);
                 mErrorBarPointer[i]->setData(mNormFoldoverErrorsY[i]);
-                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].takeFirst(),mFoldoverDataX[i].takeLast());
+                ui->customPlot->xAxis->setRange(mFoldoverDataX[i].first(),mFoldoverDataX[i].last());
                 double max = *std::max_element(mNormFoldoverDataY[i].begin(), mNormFoldoverDataY[i].end());
                 ui->customPlot->yAxis->setRange(0,max);
 

@@ -353,7 +353,10 @@ void Mpa2dHist::findCenter2d(){
     mCenter(0) = x(1)+400;
     mCenter(1) = x(4)+400;
     qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
-    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400); //Commented for testing reasons
+    int topX,topY;
+    topY = std::round(mCenter(1))-400;
+    topX = std::round(mCenter(0))-400;
+    mCenteredHist = mRawHist.block(topY,topX,800,800); //Commented for testing reasons
 
     //Test: Normalise full hist
     //mCenteredHist = (mCenteredHist.array()/mRawHist.sum()).matrix();
@@ -387,22 +390,29 @@ void Mpa2dHist::findCenter4d(){
     Eigen::Vector2d backup = mCenter;
     Eigen::VectorXd x(10);
 
-    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
+    Eigen::MatrixXd cut = mRawHist.block<400,400>(300,300);
     // parameters are: [Amplitude rot, x0, sigmaxrot, y0, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
-    x << cut.maxCoeff()*0.8,cut.cols()/2,40,cut.rows()/2,10,3.14/5,cut.maxCoeff()*0.2,10,cut.maxCoeff()*0.2,10;
+    x << cut.maxCoeff()*0.8,cut.cols()/2,10,cut.rows()/2,22,-0.81380,20,20,20,20;
     Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
     lmdif_gauss4dex_functor functor(y,y.size());
     Eigen::NumericalDiff<lmdif_gauss4dex_functor> numDiff(functor);
     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss4dex_functor>,double> lm(numDiff);
-    lm.parameters.maxfev = 6000;
+    lm.parameters.factor = 10;
+    lm.parameters.maxfev = 600;
     lm.parameters.xtol = 1.0e-6;
     int ret = lm.minimize(x);
     qDebug() << lm.nfev;
+    if (ret==1){
+        mCenter(0) = x(1)+300;
+        mCenter(1) = x(3)+300;
+    }
     //mCenter(0) = x(1)+400;
     //mCenter(1) = x(3)+400;
     qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
-    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
-    mCal(1) = std::abs(mCal(0)*std::tan(x(5)));
+    int topX,topY;
+    topY = std::round(mCenter(1))-400;
+    topX = std::round(mCenter(0))-400;
+    mCenteredHist = mRawHist.block(topY,topX,800,800);
     qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
     mCal(1) = std::abs(mCal(0)/std::tan(x(5)));
     qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
@@ -539,8 +549,14 @@ void Mpa2dHist::variableRoi(){
 void Mpa2dHist::updateMap(){
     mEnergyMap.clear();
     Eigen::Array2d leftTop;
-    leftTop(0) = mEnergyCenter(0)*1e3-(mCenteredHist.rows()/2)*mCal(0);//correction missing for using int percision here
-    leftTop(1) = mEnergyCenter(1)*1e3+(mCenteredHist.cols()/2)*mCal(1);
+
+    double correctionX = mCenter(0)-std::round(mCenter(0));
+    double correctionY = mCenter(1)-std::round(mCenter(1));
+    leftTop(0) = 511e3-(mCenteredHist.rows()/2-correctionX)*mCal(0);//correction missing for using int percision here
+    leftTop(1) = 511e3+(mCenteredHist.cols()/2-correctionY)*mCal(1);
+
+//    leftTop(0) = 511e3-(mCenteredHist.rows()/2)*mCal(0);//correction missing for using int percision here
+//    leftTop(1) = 511e3+(mCenteredHist.cols()/2)*mCal(1);
     for(int y=0;y<mCenteredHist.cols();y++){
        for(int x=0;x<mCenteredHist.rows();x++){
            Eigen::Array2d center(x,y);
@@ -548,7 +564,7 @@ void Mpa2dHist::updateMap(){
            Eigen::Array2d odd;
            std::vector<Eigen::Array2d> corners;
            center(0) = leftTop(0)+x*mCal(0);
-           center(1) = leftTop(1)-y*mCal(0);
+           center(1) = leftTop(1)-y*mCal(1);
            odd << -0.5,0.5;
            tmp = center-0.5*mCal;
            corners.push_back(tmp);
@@ -558,7 +574,7 @@ void Mpa2dHist::updateMap(){
            corners.push_back(tmp);
            tmp = center-odd*mCal;
            corners.push_back(tmp);
-           CdbPixel *px = new CdbPixel(corners,mCenteredHist(mCenteredHist.rows()-y-1,x));
+           CdbPixel *px = new CdbPixel(corners,mCenteredHist(y,mCenteredHist.rows()-x-1));
            mEnergyMap.push_back(px);
            if (x==0 && y==0){
                qDebug()<< "upper left:";
@@ -568,6 +584,10 @@ void Mpa2dHist::updateMap(){
                qDebug()<< "upper right:";
                qDebug() << px->mCorners[2](0) <<" , " << px->mCorners[2](1);;
            }
+           if (x==400 && y==400){
+                          qDebug()<< "Center:";
+                          qDebug() << px->mCenter(0) <<" , " << px->mCenter(1);;
+                      }
            if (x==0 && y==799){
                qDebug() << "lower left:";
                qDebug() << px->mCorners[0](0) <<" , " << px->mCorners[0](1);
@@ -602,9 +622,11 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
 
     if(!mMapInitialised){
         findCenter2d();
+        //findCenter4d();
         //findRot();
         updateMap();
         mMapInitialised = true;
+        /*
         int tmpDepth = mDepth;
         double tmpRoiWidth = mRoiWidth;
         double tmpRoiLength = mRoiLength;
@@ -616,8 +638,10 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
         setDepth(tmpDepth);
         setRoi(tmpRoiWidth,tmpRoiLength);
         setEnergyBinWidth(tmpEnergyBinWidth);
-        //translateMap(mOffset*(-1),200);
+        translateMap(mOffset*(-1),200);
         //updateMap();
+        */
+
 
     }
 

@@ -139,7 +139,7 @@ void MpaCdbHist::calculateFoldover(){
         for(int i=0;i<mSize/2;i++){
             mFoldoverHist(i) = mProjectionHist(mSize/2+i) + mProjectionHist(mSize/2-1-i);
             mFoldoverHistError(i) = std::sqrt(std::pow(mProjectionHistError(mSize/2+i),2)+std::pow(mProjectionHistError(mSize/2-1-i),2));
-            mNormFoldoverHist(i) = (mProjectionHist(mSize/2+i) + mProjectionHist(mSize/2-1-i))/(mNorm*mSingleBinWidth(i));
+            mNormFoldoverHist(i) = (mProjectionHist(mSize/2+i) + mProjectionHist(mSize/2-1-i))/(mNorm*mSingleBinWidth(mSize/2+i));
             mNormFoldoverHistError(i) = std::sqrt(std::pow(mFoldoverHistError(i)/mFoldoverHist(i),2)+std::pow(std::sqrt(mNorm)/mNorm,2))*mNormFoldoverHist(i);
         }
     }

@@ -23,11 +23,11 @@ public:
     void addRoi(double roiWidth, double roiLength, double binWidth);
 
 public slots:
-    void changeView(int i);
+    void changeView(QString s);
 
 private:
     Ui::MapPlotWidget *ui;
-    QVector<QColormap*> layers;
+    QString mActiveLayer;
 };
 
 #endif // MAPPLOTWIDGET_H

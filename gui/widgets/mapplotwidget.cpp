@@ -6,7 +6,8 @@ MapPlotWidget::MapPlotWidget(QWidget *parent) :
     ui(new Ui::MapPlotWidget)
 {
     ui->setupUi(this);
-    connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(changeView(int)));
+    connect(ui->comboBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(changeView(QString)));
+    mActiveLayer = "Raw";
 }
 
 MapPlotWidget::~MapPlotWidget()
@@ -15,24 +16,40 @@ MapPlotWidget::~MapPlotWidget()
 }
 
 void MapPlotWidget::addHist(Mpa2dHist *hist){
+    ui->customPlot->addLayer("Raw");
+    ui->customPlot->setCurrentLayer("Raw");
     plotRaw(hist);
     if(hist->mMapInitialised){
+        ui->customPlot->addLayer("Centered");
+        ui->customPlot->setCurrentLayer("Centered");
         plotCentered(hist);
+        ui->customPlot->currentLayer()->setVisible(false);
+        ui->customPlot->addLayer("Map");
+        ui->customPlot->setCurrentLayer("Map");
         plotMap(hist);
+        ui->customPlot->currentLayer()->setVisible(false);
     }
     else{
         ui->comboBox->removeItem(1);
         ui->comboBox->removeItem(1);
     }
+    ui->customPlot->rescaleAxes(true);
+    ui->customPlot->replot();
 }
 
-void MapPlotWidget::changeView(int i){
+void MapPlotWidget::changeView(QString s){
+    ui->customPlot->layer(mActiveLayer)->setVisible(false);
+    ui->customPlot->layer(s)->setVisible(true);
+    mActiveLayer = s;
+    ui->customPlot->rescaleAxes(true);
+    ui->customPlot->replot();
+
 
 }
 
 void MapPlotWidget::plotRaw(Mpa2dHist *hist){
 
-    hist->updateEnergyScale();
+    //hist->updateEnergyScale();
     // configure axis rect:
     ui->customPlot->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom); // this will also allow rescaling the color scale by dragging/zooming
     ui->customPlot->axisRect()->setupFullAxesBox(true);
@@ -135,7 +152,7 @@ void MapPlotWidget::plotCentered(Mpa2dHist *hist){
     }
     // add a color scale:
     QCPColorScale *colorScale = new QCPColorScale(ui->customPlot);
-    ui->customPlot->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
+    ui->customPlot->plotLayout()->addElement(0, 2, colorScale); // add it to the right of the main axis rect
     colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
     colorMap->setColorScale(colorScale); // associate the color map with the color scale
     //colorScale->axis()->setLabel("Magnetic Field Strength");
@@ -194,7 +211,7 @@ void MapPlotWidget::plotMap(Mpa2dHist *hist){
 
     // add a color scale:
     QCPColorScale *colorScale = new QCPColorScale(ui->customPlot);
-    ui->customPlot->plotLayout()->addElement(0, 1, colorScale); // add it to the right of the main axis rect
+    ui->customPlot->plotLayout()->addElement(0, 3, colorScale); // add it to the right of the main axis rect
     colorScale->setType(QCPAxis::atRight); // scale shall be vertical bar with tick/axis labels right (actually atRight is already the default)
     colorMap->setColorScale(colorScale); // associate the color map with the color scale
     //colorScale->axis()->setLabel("Magnetic Field Strength");

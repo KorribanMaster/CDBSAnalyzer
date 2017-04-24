@@ -48,6 +48,7 @@ signals:
 
 public slots:
     void saveSessionClicked();
+    void loadSettingsClicked();
     void loadButtonClicked();
     void loadToolClicked();
     void computeButtonClicked();

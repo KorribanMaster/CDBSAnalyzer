@@ -34,6 +34,7 @@ public:
     void findRot();
     void findCenterEx();
     void findCenter4d();
+    void findCenterTrustRegion();
     void updateRoi();
     void variableRoi();
     void updateMap();

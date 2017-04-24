@@ -4,6 +4,11 @@
 #include <unsupported/Eigen/NumericalDiff>
 #include <unsupported/Eigen/SpecialFunctions>
 
+#include <dlib/optimization.h>
+#include <dlib/optimization/find_optimal_parameters.h>
+
+#include "D2Model.h"
+
 #include <QDebug>
 #include <QtConcurrent>
 
@@ -105,15 +110,17 @@ struct lmdif_gauss2dex_functor : Functor<double>
 struct lmdif_gauss4dex_functor : Functor<double>
 {
     Eigen::VectorXd mZ;
-    lmdif_gauss4dex_functor(const Eigen::VectorXd &z,int zsize) : Functor<double>(10,zsize),mZ(z) {}
-    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
+    lmdif_gauss4dex_functor(const Eigen::VectorXd &z,int zsize) : Functor<double>(9,zsize),mZ(z) {}
+    int operator()(const Eigen::VectorXd &xtmp, Eigen::VectorXd &fvec) const
     {
-        assert(x.size()==10);
+        assert(xtmp.size()==9);
+        Eigen::VectorXd x(10) ;
+        x << xtmp.head(5), -0.813808177223752 , xtmp.tail(4);
         int size=std::sqrt(mZ.size());
-        // parameters are: [Amplitude, x0, sigmaxrot, y0, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
+        // parameters are: [Amplitude, x0, sigmaxrot, y0, sigmayrot, %angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
         Eigen::VectorXd xrow,ycol;
-        xrow.setLinSpaced(size,1,size);
-        ycol.setLinSpaced(size,size,1);
+        xrow.setLinSpaced(size,0,size-1);
+        ycol.setLinSpaced(size,0,size-1);
         Eigen::ArrayXXd xmesh(size,size),ymesh(size,size);
         for(int i=0;i<size;i++){
             xmesh.row(i) = xrow;
@@ -133,8 +140,8 @@ struct lmdif_gauss4dex_functor : Functor<double>
         double y0rot = x(1)*std::sin(x(5)) + x(3)*std::cos(x(5));
         Eigen::Map<Eigen::ArrayXXd> Z0((double*)mZ.data(),size,size);
         Eigen::ArrayXXd rotgauss = x(0)*(-((xmeshrot-x0rot).square()/(2*std::pow(x(2),2))+(ymeshrot-y0rot).square()/(2*std::pow(x(4),2)))).exp();
-        Eigen::ArrayXXd crossgauss = x(6)*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+x(8)*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x(9),2)));
-        Eigen::ArrayXXd crossgausserfc = (x(6)*0.1*Eigen::erfc((ymesh-x(3))/x(4))+0.9*x(6))*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+(x(8)*0.1*Eigen::erfc((ymesh-x(1))/x(2))+0.9*x(8))*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x(9),2)));
+        //Eigen::ArrayXXd crossgauss = x(6)*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+x(8)*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x[9],2)));
+        Eigen::ArrayXXd crossgausserfc = (x(6)*0.1*Eigen::erfc((ymesh-x(3))/x(4))+0.9*x(6))*Eigen::exp(-(xmesh-x(1)).square()/(2*std::pow(x(7),2)))+(x(8)*0.1*Eigen::erfc((ymesh-x(1))/x(2))+0.9*x(8))*Eigen::exp(-(ymesh-x(3)).square()/(2*std::pow(x[9],2)));
         Eigen::ArrayXXd err = Z0-(rotgauss+crossgausserfc);
         Eigen::Map<Eigen::VectorXd> f(err.data(),mZ.size());
         fvec = f;
@@ -183,7 +190,31 @@ struct lmdif_gaussrotonly_functor : Functor<double>
         return 0;
     }
 };
+typedef dlib::matrix<double,0,1> column_vector;
 
+class DataModel
+{
+public:
+    DataModel(Eigen::ArrayXXd data){
+        mData = data;
+    }
+    double operator()(const column_vector& x) const{
+        int size=mData.cols();
+        // parameters are: [Amplitude, x0, sigmaxrot, y0, sigmayrot, %angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
+        double xraw[10],F[40000];
+        for (int i=0;i<10;i++){
+            xraw[i] = x(i);
+        }
+        D2Model(xraw,F);
+        Eigen::Map<Eigen::ArrayXXd> model(F,200,200);
+        double err = (mData-model).matrix().squaredNorm()/40000;
+        return err;
+
+    }
+private:
+    Eigen::ArrayXXd mData;
+
+};
 
 Mpa2dHist::Mpa2dHist(QString name)
 {
@@ -382,29 +413,55 @@ void Mpa2dHist::findCenterEx(){
     mCenter(1) = x(3)+400;
     qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
     mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
-    mCal(1) = -1*mCal(0)*std::tan(x(5));
+    //mCal(1) = -1*mCal(0)*std::tan(x(5));
     qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+}
+
+void Mpa2dHist::findCenterTrustRegion(){
+
+    column_vector x(10);
+    column_vector ub(10);
+    column_vector lb(10);
+    Eigen::ArrayXXd cut = mRawHist.block<200,200>(400,400).array();
+    x = cut.maxCoeff(),	100,	10,	100,	20, -3.14/4 ,	22.9363986856602,	23.6247277546898,	25.2606329760491,	20.3816849203029;
+    ub = cut.maxCoeff(), 200 , 1000, 200, 1000,3.14/3,200,200,200,200;
+    lb = 0,0,0,0,0,-3.14/3,0,0,0,0;
+    //dlib::find_min_bobyqa(DataModel(cut),x,21,lb,ub,.1,1e-4,1000);
+    double err = dlib::find_optimal_parameters(1,1e-7,2000,x,lb,ub,DataModel(cut));
+    //dlib::find_min_box_constrained(dlib::bfgs_search_strategy(),dlib::objective_delta_stop_strategy(1e-6),DataModel,dlib::derivative(DataModel),x,lb,ub);
+
+    for (int i=0;i<10;i++){
+        qDebug() << x(i);
+    }
+    qDebug()<< err;
+
+    mCenter(0) = x(1)+400;
+    mCenter(1) = x(3)+400;
+    qDebug() << "Center"<< mCenter(0) << "," << mCenter(1);
+    mCenteredHist = mRawHist.block<800,800>(std::round(mCenter(1))-400,std::round(mCenter(0))-400);
+    //mCal(1) = std::abs(mCal(0)/std::tan(x(5)));
+    //qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
 }
 
 void Mpa2dHist::findCenter4d(){
     Eigen::Vector2d backup = mCenter;
-    Eigen::VectorXd x(10);
+    Eigen::VectorXd x(9);
 
-    Eigen::MatrixXd cut = mRawHist.block<400,400>(300,300);
+    Eigen::MatrixXd cut = mRawHist.block<200,200>(400,400);
     // parameters are: [Amplitude rot, x0, sigmaxrot, y0, sigmayrot, angel(in rad),Amplitudex,sigmax,Amplitudey sigmay]
-    x << cut.maxCoeff()*0.8,cut.cols()/2,10,cut.rows()/2,22,-0.81380,20,20,20,20;
+    x << 2288.63295352580,	115.552765609990,	10.5854086859074,	109.412457372976,	22.9230261806958,	22.9363986856602,	23.6247277546898,	25.2606329760491,	20.3816849203029;
     Eigen::Map<Eigen::VectorXd> y(cut.data(), cut.size());
     lmdif_gauss4dex_functor functor(y,y.size());
     Eigen::NumericalDiff<lmdif_gauss4dex_functor> numDiff(functor);
     Eigen::LevenbergMarquardt<Eigen::NumericalDiff<lmdif_gauss4dex_functor>,double> lm(numDiff);
-    lm.parameters.factor = 10;
+    lm.parameters.factor = 50;
     lm.parameters.maxfev = 600;
-    lm.parameters.xtol = 1.0e-6;
+    lm.parameters.xtol = 1.0e-4;
     int ret = lm.minimize(x);
     qDebug() << lm.nfev;
     if (ret==1){
-        mCenter(0) = x(1)+300;
-        mCenter(1) = x(3)+300;
+        mCenter(0) = x(1)+400;
+        mCenter(1) = x(3)+400;
     }
     //mCenter(0) = x(1)+400;
     //mCenter(1) = x(3)+400;
@@ -414,8 +471,8 @@ void Mpa2dHist::findCenter4d(){
     topX = std::round(mCenter(0))-400;
     mCenteredHist = mRawHist.block(topY,topX,800,800);
     qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
-    mCal(1) = std::abs(mCal(0)/std::tan(x(5)));
-    qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
+    //mCal(1) = std::abs(mCal(0)/std::tan(x(5)));
+    //qDebug() <<"Corrected Calibration" << mCal(0) << "," <<mCal(1);
 }
 
 void Mpa2dHist::findRot(){
@@ -621,7 +678,8 @@ MpaCdbHist* Mpa2dHist::projectCDBS(){
     //centerHist();
 
     if(!mMapInitialised){
-        findCenter2d();
+        //findCenter2d();
+        findCenterTrustRegion();
         //findCenter4d();
         //findRot();
         updateMap();

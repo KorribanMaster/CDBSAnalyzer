@@ -22,16 +22,20 @@ INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS} ${Qt5Network_INCLUDE_DIRS} ${Qt5Conc
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
+find_package(dlib REQUIRED)
+INCLUDE_DIRECTORIES(${DLIB_INCLUDE_DIR})
+
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 #-Wall -Wno-long-long -pedantic -g
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fPIC")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o3 -fPIC")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # LIBS
 INCLUDE_DIRECTORIES(libs
     libs/pixel
     libs/hist
+    libs/model
     gui
     gui/tables
     gui/widgets
@@ -52,13 +56,28 @@ add_library(hist SHARED
     libs/hist/histmanager.cpp
     libs/hist/histinfo.cpp
     )
-target_link_libraries(hist pixel)
+target_link_libraries(hist model pixel)
 
 add_library(pixel SHARED
     libs/pixel/abstractpixel.cpp
     libs/pixel/roipixel.cpp
     libs/pixel/cdbpixel.cpp
     )
+add_library(model SHARED
+    libs/model/D2GaussErfc.c
+    libs/model/D2GaussFunctionRot.c
+    libs/model/D2Model.c
+    libs/model/D2Model_initialize.c
+    libs/model/D2Model_terminate.c
+    libs/model/D2Model_types.h
+    libs/model/erfc.c
+    libs/model/power.c
+    libs/model/exp.c
+    libs/model/rt_nonfinite.c
+    libs/model/rtGetInf.c
+    libs/model/rtGetNaN.c
+    libs/model/rtwtypes.h
+    libs/model/meshgrid.c)
 
 #GUI
 add_library(mainwindow SHARED

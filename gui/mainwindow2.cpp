@@ -41,6 +41,7 @@ MainWindow2::MainWindow2(QWidget *parent) :
   connect(ui->buttonCompute,SIGNAL(clicked(bool)),this,SLOT(computeButtonClicked()));
   connect(ui->buttonRef,SIGNAL(clicked(bool)),this,SLOT(referenceButtonClicked()));
   connect(ui->actionSave_Session,SIGNAL(triggered(bool)),this,SLOT(saveSessionClicked()));
+  connect(ui->actionLoad_Settings,SIGNAL(triggered(bool)),this,SLOT(loadSettingsClicked()));
   connect(ui->buttonPlotCdbs,SIGNAL(clicked(bool)),this,SLOT(plotCdbsButtonClicked()));
   connect(ui->buttonPlotRef,SIGNAL(clicked(bool)),this,SLOT(plotRefButtonClicked()));
   connect(ui->buttonPreview,SIGNAL(clicked(bool)),this,SLOT(previewButtonClicked()));
@@ -81,6 +82,11 @@ MainWindow2::~MainWindow2(){
 void MainWindow2::saveSessionClicked(){
     QString saveFolderName = QFileDialog::getExistingDirectory(this,"Save Folder","..data");
     emit saveHists(saveFolderName);
+}
+
+void MainWindow2::loadSettingsClicked(){
+    QString Name = QFileDialog::getOpenFileName(this,"Save Folder","..data");
+    emit loadSettings(Name);
 }
 
 void MainWindow2::loadButtonClicked(){
@@ -188,7 +194,7 @@ void MainWindow2::previewButtonClicked(){
         hist->setRoi(ui->editRoiWidth->text().toDouble(),ui->editRoiLength->text().toDouble());
         hist->updateRoi();
     }
-    mMapPlot->plotMap(hist);
+    mMapPlot->addHist(hist);
 
     return;
 }

@@ -5,6 +5,7 @@
 
 HistManager::HistManager(QObject *parent) : QObject(parent)
 {
+    openDb();
 
 }
 
@@ -138,8 +139,8 @@ void HistManager::loadSettings(QString settingsFileName){
        }
        mSettingsFileName = settingsFileName;
        mSettings = new QSettings(mSettingsFileName,QSettings::IniFormat);
-       qDebug() << mSettings->allKeys();
-       openDb();
+       //qDebug() << mSettings->allKeys();
+
 }
 
 Mpa1dHist* HistManager::get1dHist(int index){

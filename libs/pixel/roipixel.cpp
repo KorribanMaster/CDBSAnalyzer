@@ -12,7 +12,7 @@ double RoiPixel::incomplete(){
     return mIncomplete;
 }
 
-void RoiPixel::getContent(std::vector<CdbPixel*> pxList,int depth){
+void RoiPixel::getContent(const std::vector<CdbPixel*> pxList,int depth){
     //std::vector<CdbPixel*> remaining;
     if (depth < mMaxDepth){
         for(int n = 0;n<pxList.size();n++){
